@@ -1,0 +1,6 @@
+FROM ubuntu:focal
+RUN apt-get update && apt-get install -y curl python3.8 python3-distutils
+RUN curl -O https://bootstrap.pypa.io/get-pip.py
+RUN python3.8 get-pip.py
+
+CMD tail -f /dev/null

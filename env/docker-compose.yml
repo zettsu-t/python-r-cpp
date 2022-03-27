@@ -1,0 +1,18 @@
+version: '3'
+services:
+  python_cpp:
+    build: ./python
+    image: python_cpp
+    user: pydev
+    volumes:
+      - ../python_proj:/home/pydev/work
+
+  r_cpp:
+    build: ./r
+    image: r_cpp
+    ports:
+      - 8787:8787
+    environment:
+      PASSWORD: ${PASSWORD}
+    volumes:
+      - ../r_proj:/home/rstudio/work

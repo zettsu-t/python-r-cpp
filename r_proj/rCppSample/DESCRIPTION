@@ -1,0 +1,28 @@
+Package: rCppSample
+Type: Package
+Title: A C++ sample package
+Version: 0.0.0.9000
+Authors@R: person('Zettsu', 'Tatsuya', email = 'zettsu.tatsuya@gmail.com', role = c('cre', 'aut'))
+Description: This is a sample package to use C++ in R.
+License: MIT + file LICENSE
+LinkingTo: Rcpp
+Imports:
+    Rcpp
+Encoding: UTF-8
+LazyData: true
+Suggests:
+    testthat (>= 3.0.0),
+    spelling,
+    covr,
+    devtools,
+    DT,
+    microbenchmark,
+    purrr,
+    lintr,
+    styler,
+    knitr,
+    markdown,
+    rmarkdown,
+    kableExtra
+Language: en-US
+RoxygenNote: 7.1.2
