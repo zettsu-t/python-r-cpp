@@ -39,11 +39,14 @@ jobs:
           sudo update-locale LANG=ja_JP.UTF-8
           sudo locale-gen ja_JP.UTF-8
 
-      - name: Install Boost C++ libraries
-        working-directory: ./boost_1_78_0
+      - name: Download Boost C++ libraries
         run: |
           sudo wget https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.gz
           sudo tar xzf boost_1_78_0.tar.gz
+
+      - name: Install Boost C++ libraries
+        working-directory: ./boost_1_78_0
+        run: |
           sudo ./bootstrap.sh --with-libraries=python --with-python=python3.8 --with-python-version=3.8
           sudo ./b2 install cxxflags=-fPIC address-model=64 threading=multi link=static,shared runtime-link=static variant=release -j4 --prefix=/opt/boost_1_78_0
           sudo test -d /opt/boost || ln -s /opt/boost_1_78_0 /opt/boost
