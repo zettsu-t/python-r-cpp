@@ -35,26 +35,25 @@ RUN mkdir -p /usr/local/lib/R/etc
 RUN echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl', Ncpus = 4)" >> /usr/local/lib/R/etc/Rprofile.site
 RUN R -e 'devtools::install_github("wch/extrafont")'
 RUN R -e 'install.packages(c("Rcpp"))'
-RUN R -e 'install.packages(c("testthat", "spelling", "covr", "devtools", "DT", "microbenchmark", "purrr", "lintr", "styler", "knitr", "markdown", "rmarkdown", "kableExtra"))'
+RUN R -e 'install.packages(c("testthat", "spelling", "covr", "devtools", "DT", "microbenchmark", "dplyr", "ggplot2", "purrr", "lintr", "styler", "knitr", "markdown", "rmarkdown", "kableExtra"))'
 RUN R -e 'remotes::install_version("Rttf2pt1", version = "1.3.8")'
 
 ## Copy projects
 ARG PROJECTS_TOP_DIR=/root/work
-ARG PYTHON_PROJECT_DIR="${PROJECTS_TOP_DIR}/py_cpp_sample"
-ARG R_PROJECT_DIR="${PROJECTS_TOP_DIR}/rCppSample"
+ARG PYTHON_PROJECT_DIR="${PROJECTS_TOP_DIR}/python_proj/py_cpp_sample"
+ARG R_PROJECT_DIR="${PROJECTS_TOP_DIR}/r_proj/rCppSample"
 
 RUN mkdir -p "${PYTHON_PROJECT_DIR}"
 RUN mkdir -p "${R_PROJECT_DIR}"
-COPY python_proj/py_cpp_sample/ "${PYTHON_PROJECT_DIR}/"
-COPY r_proj/rCppSample/ "${R_PROJECT_DIR}/"
-COPY r_proj/tests/r_tests.R "${R_PROJECT_DIR}/r_tests.R"
+COPY python_proj/ "${PROJECTS_TOP_DIR}/python_proj/"
+COPY r_proj/ "${PROJECTS_TOP_DIR}/r_proj/"
 
 ## Testing an R package
-WORKDIR "${PROJECTS_TOP_DIR}"
+WORKDIR "${PROJECTS_TOP_DIR}/r_proj"
 RUN R CMD build rCppSample
 RUN R CMD INSTALL rCppSample_0.0.0.9000.tar.gz
 WORKDIR "${R_PROJECT_DIR}"
-RUN Rscript "${R_PROJECT_DIR}/r_tests.R"
+RUN Rscript "${R_PROJECT_DIR}/../tests/r_tests.R"
 
 RUN mkdir -p "${R_PROJECT_DIR}/tests/build"
 WORKDIR "${R_PROJECT_DIR}/tests/build"
@@ -105,5 +104,5 @@ RUN patch < ../patch/Doxyfile.diff
 RUN doxygen
 WORKDIR  ..
 
-## Wait to login
-CMD tail -f /dev/null
+## Wait to login for debugging
+## CMD tail -f /dev/null

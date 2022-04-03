@@ -34,11 +34,6 @@ jobs:
         run: |
           sudo apt-get install -y build-essential cmake curl doxygen git git-core gnupg2 graphviz language-pack-ja lcov less make pandoc pandoc-citeproc patch python3-dev python3-numpy python3-sphinx qpdf software-properties-common unzip wget zlib1g-dev libcairo2-dev libcurl4-openssl-dev libgit2-dev libicu-dev libpng-dev libpython3-dev libssl-dev libtbb2 libxml2-dev libxt6 libxt-dev
 
-      - name: Setup a language pack
-        run: |
-          sudo update-locale LANG=ja_JP.UTF-8
-          sudo locale-gen ja_JP.UTF-8
-
       - name: Download Boost C++ libraries
         run: |
           sudo wget https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.gz
@@ -61,8 +56,62 @@ jobs:
           sudo pip install autopep8 check-manifest coverage find_libpython flake8 mypy numpy pep8 pipenv pybind11 pybind11-global pylint pytest pytest-benchmark pytest-cov py_pkg sphinx sphinx_rtd_theme types-requests
           sudo mkdir -p /usr/lib/python3.8/site-packages
           sudo chmod ugo+w /usr/lib/python3.8/site-packages
-          find / -name "pybind11.h"
-          find / -name "site-packages"
+
+      - name: Testing Python code
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample
+        run: |
+          mkdir -p tests/build
+          mkdir -p docs
+          pip install autopep8 check-manifest coverage find_libpython flake8 mypy numpy pep8 pipenv pybind11 pybind11-global pylint pytest pytest-benchmark pytest-cov py_pkg sphinx sphinx_rtd_theme types-requests wheel
+          python setup.py bdist_wheel
+          pip install --force --user dist/py_cpp_sample-0.0.1-cp38-cp38-linux_x86_64.whl
+          pytest tests
+          flake8 --exclude tests/build src tests
+          pylint src tests
+          mypy src
+          pip install --force --user -e .
+          export PYTHONPATH=src; pytest --cov=src --cov=tests --cov-report=html tests; unset PYTHONPATH
+          coverage report -m
+          coverage html
+
+      - name: Testing C++ code in the Python package
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample/tests/build
+        run: |
+          cmake ..
+          make
+          make test
+
+      - name: Report coverage of C++ code in the Python package
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample/tests/build/CMakeFiles/test_popcount.dir
+        run: |
+          lcov -d . -c -o coverage.info
+          lcov -r coverage.info */googletest/* test/* */c++/* -o coverageFiltered.info
+          genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
+
+      - name: Make documents for Python code in the Python package
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample
+        run: |
+          sphinx-quickstart -q -p py_cpp_sample -a "Author's name"
+          patch < patch/conf.py.diff
+          patch < patch/index.rst.diff
+          export PYTHONPATH=src; make html; unset PYTHONPATH
+
+      - name: Make documents for C++ code in the Python package
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample/docs
+        run: |
+          doxygen -g
+          patch < ../patch/Doxyfile.diff
+          doxygen
+
+      - name: Setup a language pack
+        run: |
+          sudo update-locale LANG=ja_JP.UTF-8
+          sudo locale-gen ja_JP.UTF-8
 
       - name: Install R package dependencies
         continue-on-error: true
@@ -111,54 +160,3 @@ jobs:
           lcov -d . -c -o coverage.info
           lcov -r coverage.info */googletest/* test/* */c++/* -o coverageFiltered.info
           genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
-
-      - name: Testing Python code
-        continue-on-error: true
-        working-directory: ./python_proj/py_cpp_sample
-        run: |
-          mkdir -p tests/build
-          mkdir -p docs
-          pip install autopep8 check-manifest coverage find_libpython flake8 mypy numpy pep8 pipenv pybind11 pybind11-global pylint pytest pytest-benchmark pytest-cov py_pkg sphinx sphinx_rtd_theme types-requests
-          python setup.py bdist_wheel
-          pip install --force --user dist/py_cpp_sample-0.0.1-cp38-cp38-linux_x86_64.whl
-          pytest tests
-          flake8 --exclude tests/build src tests
-          pylint src tests
-          mypy src
-          pip install --force --user -e .
-          export PYTHONPATH=src; pytest --cov=src --cov=tests --cov-report=html tests; unset PYTHONPATH
-          coverage report -m
-          coverage html
-
-      - name: Testing C++ code in the Python package
-        continue-on-error: true
-        working-directory: ./python_proj/py_cpp_sample/tests/build
-        run: |
-          cmake ..
-          make
-          make test
-
-      - name: Report coverage of C++ code in the Python package
-        continue-on-error: true
-        working-directory: ./python_proj/py_cpp_sample/tests/build/CMakeFiles/test_popcount.dir
-        run: |
-          lcov -d . -c -o coverage.info
-          lcov -r coverage.info */googletest/* test/* */c++/* -o coverageFiltered.info
-          genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
-
-      - name: Make documents for Python code in the Python package
-        continue-on-error: true
-        working-directory: ./python_proj/py_cpp_sample
-        run: |
-          sphinx-quickstart -q -p py_cpp_sample -a "Author's name"
-          patch < patch/conf.py.diff
-          patch < patch/index.rst.diff
-          export PYTHONPATH=src; make html; unset PYTHONPATH
-
-      - name: Make documents for C++ code in the Python package
-        continue-on-error: true
-        working-directory: ./python_proj/py_cpp_sample/docs
-        run: |
-          doxygen -g
-          patch < ../patch/Doxyfile.diff
-          doxygen
