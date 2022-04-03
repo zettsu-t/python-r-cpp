@@ -32,7 +32,7 @@ jobs:
 
       - name: Install Linux package dependencies
         run: |
-          sudo apt-get update && apt-get install -y build-essential cmake curl doxygen git git-core gnupg2 graphviz language-pack-ja lcov less make pandoc pandoc-citeproc patch python3-dev python3-numpy python3-sphinx qpdf software-properties-common unzip wget zlib1g-dev libcairo2-dev libcurl4-openssl-dev libgit2-dev libicu-dev libpng-dev libpython3-dev libssl-dev libtbb2 libxml2-dev libxt6 libxt-dev
+          sudo apt-get install -y build-essential cmake curl doxygen git git-core gnupg2 graphviz language-pack-ja lcov less make pandoc pandoc-citeproc patch python3-dev python3-numpy python3-sphinx qpdf software-properties-common unzip wget zlib1g-dev libcairo2-dev libcurl4-openssl-dev libgit2-dev libicu-dev libpng-dev libpython3-dev libssl-dev libtbb2 libxml2-dev libxt6 libxt-dev
 
       - name: Setup a language pack
         run: |
