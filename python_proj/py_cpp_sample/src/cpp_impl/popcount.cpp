@@ -1,9 +1,9 @@
 #include "popcount.hpp"
 
-BOOST_PYTHON_MODULE(cpp_impl) {
-    Py_Initialize();
-    boost::python::numpy::initialize();
-    boost::python::def("popcount_cpp", py_cpp_sample::popcount_cpp);
+PYBIND11_MODULE(py_cpp_sample_cpp_impl, mod) {
+    mod.doc() = "C++ implementation of the py_cpp_sample package";
+    mod.def("popcount_cpp_uint8", &py_cpp_sample::popcount_cpp_uint8);
+    mod.def("popcount_cpp_uint64", &py_cpp_sample::popcount_cpp_uint64);
 }
 
 /*

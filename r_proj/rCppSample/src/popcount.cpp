@@ -28,11 +28,6 @@ namespace {
 #ifdef UNIT_TEST_CPP
 rCppSample::IntegerVector popcount_cpp_raw(rCppSample::ArgRawVector xs)
 #else // UNIT_TEST_CPP
-//' Count 1's in each raw element
-//'
-//' @param xs A raw vector to count populations
-//' @return The populations of elements in the vector
-// [[Rcpp::export]]
 Rcpp::IntegerVector popcount_cpp_raw(Rcpp::RawVector xs)
 #endif // UNIT_TEST_CPP
 {
@@ -42,11 +37,6 @@ Rcpp::IntegerVector popcount_cpp_raw(Rcpp::RawVector xs)
 #ifdef UNIT_TEST_CPP
 rCppSample::IntegerVector popcount_cpp_integer(rCppSample::ArgIntegerVector xs)
 #else // UNIT_TEST_CPP
-//' Count 1's in each integer element
-//'
-//' @param xs An integer vector to count populations
-//' @return The populations of elements in the vector
-// [[Rcpp::export]]
 Rcpp::IntegerVector popcount_cpp_integer(Rcpp::IntegerVector xs)
 #endif // UNIT_TEST_CPP
 {

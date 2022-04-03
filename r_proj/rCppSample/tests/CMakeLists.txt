@@ -10,7 +10,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 # https://github.com/abandonware-pjz37/rcpp-test/blob/master/cmake/FindR.cmake
 set(R_ROOT_DIR "$ENV{R_HOME}")
 set(rlib "R")
-find_path(R_INCLUDE_DIR R.h HINTS "${R_ROOT_DIR}" PATH_SUFFIXES include R/include)
+find_path(R_INCLUDE_DIR R.h HINTS "${R_ROOT_DIR}" /usr/share PATH_SUFFIXES include R/include)
 find_library(R_LIBRARY NAMES "${rlib}" HINTS "${R_ROOT_DIR}" PATH_SUFFIXES lib R/lib)
 
 file(GLOB_RECURSE RCPP_INCLUDE_DIR "${R_ROOT_DIR}/*/Rcpp.h")

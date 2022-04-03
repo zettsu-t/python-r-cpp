@@ -8,7 +8,9 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
 
 # Use Python
 find_package(Python 3.8 REQUIRED)
+find_package(Python 3.8 COMPONENTS Interpreter Development REQUIRED)
 find_package(PythonLibs 3.8 REQUIRED)
+find_package(pybind11 CONFIG REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
 # Use Boost C++ libraries
@@ -43,10 +45,11 @@ include(GoogleTest)
 
 # Include our popcount.hpp
 set(BASEPATH "${CMAKE_SOURCE_DIR}")
-include_directories("${BASEPATH}" "${BASEPATH}/../src/cpp_impl")
+include_directories("${BASEPATH}" "${BASEPATH}/../src/cpp_impl" "${BASEPATH}/../src/cpp_impl_boost")
 
 # Executable unit tests
-add_executable(test_popcount ../src/cpp_impl/popcount.cpp ../src/cpp_impl/popcount_impl.cpp test_popcount.cpp)
+pybind11_add_module(py_cpp_sample_cpp_impl ../src/cpp_impl/popcount.cpp ../src/cpp_impl/popcount_impl.cpp)
+add_executable(test_popcount ../src/cpp_impl/popcount.cpp ../src/cpp_impl/popcount_impl.cpp ../src/cpp_impl_boost/popcount_boost.cpp ../src/cpp_impl_boost/popcount_impl_boost.cpp test_popcount.cpp)
 target_link_libraries(test_popcount "${Boost_LIBRARIES}" "${PYTHON_LIBRARIES}" gtest_main pthread)
 gtest_add_tests(TARGET test_popcount)
 

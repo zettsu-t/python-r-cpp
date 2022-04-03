@@ -7,22 +7,35 @@ namespace py_cpp_sample {
      * @return The number of 1's of each element in xs
      */
     template<typename SourceType>
-    boost::python::numpy::ndarray popcount_cpp_impl(const boost::python::numpy::ndarray& xs) {
+    pybind11::array_t<Count> popcount_cpp_impl(pybind11::array_t<SourceType,
+                                               pybind11::array::c_style |
+                                               pybind11::array::forcecast> xs) {
+        if (!xs.dtype().is(pybind11::dtype::of<SourceType>())) {
+            throw std::runtime_error("Unsupported array element types");
+        }
+
+        const auto buffer_xs = xs.request();
+        if (buffer_xs.ndim == 0) {
+            throw std::runtime_error("xs must be a 1-D uint array (a scalar variable passed?)");
+        }
+        if (buffer_xs.ndim != 1) {
+            throw std::runtime_error("xs must be a 1-D uint array");
+        }
+
         // Assuming NumPy arrays have C-like dense memory layout
-        if (xs.strides(0) != sizeof(SourceType)) {
+        if (buffer_xs.strides.at(0) != sizeof(SourceType)) {
             throw std::runtime_error("Unexpected array layout");
         }
 
-        auto size = xs.shape(0);
-        const boost::python::tuple shape = boost::python::make_tuple(size);
-        const boost::python::numpy::dtype data_type = boost::python::numpy::dtype::get_builtin<Count>();
-        auto counts = boost::python::numpy::zeros(shape, data_type);
-        if (counts.strides(0) != sizeof(Count)) {
+        auto size = buffer_xs.shape.at(0);
+        pybind11::array_t<Count, pybind11::array::c_style> counts{buffer_xs.shape};
+        auto buffer_counts = counts.request();
+        if (buffer_counts.strides.at(0) != sizeof(Count)) {
             throw std::runtime_error("Unexpected array layout");
         }
 
-        const SourceType* src = reinterpret_cast<const SourceType*>(xs.get_data());
-        Count* dst = reinterpret_cast<Count*>(counts.get_data());
+        const SourceType* src = static_cast<const SourceType*>(buffer_xs.ptr);
+        Count* dst = static_cast<Count*>(buffer_counts.ptr);
         for(decltype(size) i {0}; i < size; ++i) {
             const auto value = src[i];
 #ifdef __GNUC__
@@ -35,18 +48,16 @@ namespace py_cpp_sample {
         return counts;
     }
 
-    boost::python::numpy::ndarray popcount_cpp(const boost::python::numpy::ndarray& xs) {
-        if (xs.get_nd() != 1) {
-            throw std::runtime_error("xs must be a 1-D uint array");
-        }
+    pybind11::array_t<uint8_t> popcount_cpp_uint8(pybind11::array_t<uint8_t,
+                                                  pybind11::array::c_style |
+                                                  pybind11::array::forcecast> xs) {
+        return popcount_cpp_impl<uint8_t>(xs);
+    }
 
-        if (xs.get_dtype() == boost::python::numpy::dtype::get_builtin<uint8_t>()) {
-            return popcount_cpp_impl<uint8_t>(xs);
-        } else if (xs.get_dtype() == boost::python::numpy::dtype::get_builtin<uint32_t>()) {
-            return popcount_cpp_impl<uint32_t>(xs);
-        }
-
-        throw std::runtime_error("Unsupported array element types");
+    pybind11::array_t<uint8_t> popcount_cpp_uint64(pybind11::array_t<uint64_t,
+                                                   pybind11::array::c_style |
+                                                   pybind11::array::forcecast> xs) {
+        return popcount_cpp_impl<uint64_t>(xs);
     }
 }
 

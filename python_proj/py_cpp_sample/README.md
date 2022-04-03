@@ -36,7 +36,7 @@ from py_cpp_sample import popcount
 import numpy as np
 a = np.array([2,255], dtype=np.uint8)
 popcount(a)
-a = np.array([0xf0f0f0f0], dtype=np.uint32)
+a = np.array([0xf0f0f0f0f0f0f0f0], dtype=np.uint64)
 popcount(a)
 ```
 
@@ -83,7 +83,7 @@ cd tests/build
 cmake ..
 make
 make test
-cd ~/work/py_cpp_sample/tests/build/CMakeFiles/test_popcount.dir
+cd CMakeFiles/test_popcount.dir
 lcov -d . -c -o coverage.info
 lcov -r coverage.info */googletest/* test/* */c++/* -o coverageFiltered.info
 genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
@@ -142,7 +142,9 @@ pytest tests
 
 |Name (time in ms)|Mean|Median|
 |:------------------------|:----------------|:---------------|
-|test_popcount_py_uint8|4.6992 (1.0)|4.6815 (1.0)|
-|test_popcount_cpp_uint32|6.6576 (1.42)|6.6076 (1.41)|
-|test_popcount_cpp_uint8|6.5899 (1.40)|6.5977 (1.41)|
-|test_popcount_py_uint32|33.9425 (7.22)|33.8911 (7.24)|
+|test_popcount_py_uint8|4.6071 (1.0)|4.5590 (1.0)|
+|test_popcount_cpp_uint8|5.8161 (1.26)|5.7971 (1.27)|
+|test_popcount_cpp_uint64|5.8555 (1.27)|5.8595 (1.29)|
+|test_popcount_cpp_uint8_boost|6.4801 (1.41)|6.4774 (1.42)|
+|test_popcount_cpp_uint64_boost|6.5439 (1.42)|6.5480 (1.44)|
+|test_popcount_py_uint64|95.6931 (20.77)|95.5873 (20.97)|
