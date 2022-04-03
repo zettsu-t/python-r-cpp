@@ -72,7 +72,9 @@ jobs:
           flake8 --exclude tests/build src tests
           pylint src tests
           mypy src
-          pip install --force --user -e .
+          pip3 uninstall -y py_cpp_sample
+          sudo pip install pybind11 pybind11-global
+          sudo pip install --force -e .
           export PYTHONPATH=src; pytest --cov=src --cov=tests --cov-report=html tests; unset PYTHONPATH
           coverage report -m
           coverage html
