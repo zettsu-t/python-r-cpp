@@ -121,6 +121,7 @@ jobs:
       - name: Report coverage of C++ code in the Python package
         continue-on-error: true
         working-directory: ./python_proj/py_cpp_sample/tests/build/CMakeFiles/test_popcount.dir
+        run: |
           lcov -d . -c -o coverage.info
           lcov -r coverage.info */googletest/* test/* */c++/* -o coverageFiltered.info
           genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
@@ -128,6 +129,7 @@ jobs:
       - name: Make documents for Python code in the Python package
         continue-on-error: true
         working-directory: ./python_proj/py_cpp_sample
+        run: |
           sphinx-quickstart -q -p py_cpp_sample -a "Author's name"
           patch < patch/conf.py.diff
           patch < patch/index.rst.diff
@@ -136,6 +138,7 @@ jobs:
       - name: Make documents for C++ code in the Python package
         continue-on-error: true
         working-directory: ./python_proj/py_cpp_sample/docs
+        run: |
           doxygen -g
           patch < ../patch/Doxyfile.diff
           doxygen
