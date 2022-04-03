@@ -1,0 +1,166 @@
+on:
+  push:
+    branches:
+      - main
+      - master
+      - actions
+  pull_request:
+    branches:
+      - main
+      - master
+
+name: Build-test
+
+jobs:
+  Build-test:
+    runs-on: ubuntu-20.04
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      LANG: ja_JP.UTF-8
+      LANGUAGE: ja_JP:ja
+      LC_ALL: ja_JP.UTF-8
+    steps:
+      - uses: actions/checkout@v2
+      - uses: r-lib/actions/setup-pandoc@v1
+      - uses: r-lib/actions/setup-r@v1
+        with:
+          r-version: 4.1.2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
+
+      - name: Install Linux package dependencies
+        run: |
+          sudo apt-get install -y build-essential cmake curl doxygen git git-core gnupg2 graphviz language-pack-ja lcov less make pandoc pandoc-citeproc patch python3-dev python3-numpy python3-sphinx qpdf software-properties-common unzip wget zlib1g-dev libcairo2-dev libcurl4-openssl-dev libgit2-dev libicu-dev libpng-dev libpython3-dev libssl-dev libtbb2 libxml2-dev libxt6 libxt-dev
+
+      - name: Download Boost C++ libraries
+        run: |
+          sudo wget https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.gz
+          sudo tar xzf boost_1_78_0.tar.gz
+
+      - name: Install Boost C++ libraries
+        working-directory: ./boost_1_78_0
+        run: |
+          sudo ./bootstrap.sh --with-libraries=python --with-python=python3.8 --with-python-version=3.8
+          sudo ./b2 install cxxflags=-fPIC address-model=64 threading=multi link=static,shared runtime-link=static variant=release -j4 --prefix=/opt/boost_1_78_0
+          sudo test -d /opt/boost || ln -s /opt/boost_1_78_0 /opt/boost
+          sudo test -f "/opt/boost_1_78_0/lib/libboost_python.a" || ln -s "/opt/boost_1_78_0/lib/libboost_python38.a" "/opt/boost_1_78_0/lib/libboost_python.a"
+          sudo test -f "/opt/boost_1_78_0/lib/libboost_numpy.a" || ln -s "/opt/boost_1_78_0/lib/libboost_numpy38.a" "/opt/boost_1_78_0/lib/libboost_numpy.a"
+          sudo test -f "/opt/boost_1_78_0/lib/libboost_python.so" || ln -s "/opt/boost_1_78_0/lib/libboost_python38.so" "/opt/boost_1_78_0/lib/libboost_python.so"
+          sudo test -f "/opt/boost_1_78_0/lib/libboost_numpy.so" || ln -s "/opt/boost_1_78_0/lib/libboost_numpy38.so" "/opt/boost_1_78_0/lib/libboost_numpy.so"
+
+      - name: Install python package dependencies
+        continue-on-error: true
+        run: |
+          sudo python -m pip install --upgrade pip
+          sudo pip install autopep8 check-manifest coverage find_libpython flake8 mypy numpy pep8 pipenv pybind11 pybind11-global pylint pytest pytest-benchmark pytest-cov py_pkg sphinx sphinx_rtd_theme types-requests wheel
+          sudo mkdir -p /usr/lib/python3.8/site-packages
+          sudo chmod ugo+w /usr/lib/python3.8/site-packages
+
+      - name: Testing Python code
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample
+        run: |
+          mkdir -p tests/build
+          mkdir -p docs
+          python -m pip install --upgrade pip
+          pip install autopep8 check-manifest coverage find_libpython flake8 mypy numpy pep8 pipenv pybind11 pybind11-global pylint pytest pytest-benchmark pytest-cov py_pkg sphinx sphinx_rtd_theme types-requests wheel
+          python setup.py bdist_wheel
+          pip install --force --user dist/py_cpp_sample-0.0.1-cp38-cp38-linux_x86_64.whl
+          pytest tests
+          flake8 --exclude tests/build src tests
+          pylint src tests
+          mypy src
+          pip uninstall -y py_cpp_sample
+          sudo pip install pybind11 pybind11-global
+          sudo pip install --force -e .
+          export PYTHONPATH=src; pytest --cov=src --cov=tests --cov-report=html tests; unset PYTHONPATH
+          coverage report -m
+          coverage html
+
+      - name: Testing C++ code in the Python package
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample/tests/build
+        run: |
+          cmake ..
+          make
+          make test
+
+      - name: Report coverage of C++ code in the Python package
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample/tests/build/CMakeFiles/test_popcount.dir
+        run: |
+          lcov -d . -c -o coverage.info
+          lcov -r coverage.info */googletest/* test/* */c++/* -o coverageFiltered.info
+          genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
+
+      - name: Make documents for Python code in the Python package
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample
+        run: |
+          sphinx-quickstart -q -p py_cpp_sample -a "Author's name"
+          patch < patch/conf.py.diff
+          patch < patch/index.rst.diff
+          export PYTHONPATH=src; make html; unset PYTHONPATH
+
+      - name: Make documents for C++ code in the Python package
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample/docs
+        run: |
+          doxygen -g
+          patch < ../patch/Doxyfile.diff
+          doxygen
+
+      - name: Setup a language pack
+        run: |
+          sudo update-locale LANG=ja_JP.UTF-8
+          sudo locale-gen ja_JP.UTF-8
+
+      - name: Install R package dependencies
+        continue-on-error: true
+        run: |
+          install.packages(c("remotes", "devtools"))
+          devtools::install_github("wch/extrafont")
+          install.packages(c("Rcpp", "testthat", "spelling", "covr", "devtools", "DT", "microbenchmark", "dplyr", "ggplot2", "purrr", "lintr", "styler", "knitr", "markdown", "rmarkdown", "kableExtra"))
+          remotes::install_version("Rttf2pt1", version = "1.3.8")
+        shell: Rscript {0}
+
+      - name: Install the R Package
+        continue-on-error: true
+        working-directory: ./r_proj
+        run: |
+          mkdir -p rCppSample/tests/build
+          R CMD build rCppSample
+          R CMD INSTALL rCppSample_0.0.0.9000.tar.gz
+
+      - name: Testing R code on R REPL
+        continue-on-error: true
+        working-directory: ./r_proj/rCppSample
+        run: |
+          remotes::install_local("../rCppSample_0.0.0.9000.tar.gz", dependencies = "Imports")
+          library(rCppSample)
+          devtools::test()
+          coverage_report <- covr::package_coverage()
+          print(coverage_report)
+          covr::report(coverage_report, "./coverage_report.html")
+          lintr::lint_package()
+          devtools::document()
+          rmarkdown::render("README.Rmd", "github_document")
+        shell: Rscript {0}
+
+      - name: Testing C++ code in the R package
+        continue-on-error: true
+        working-directory: ./r_proj/rCppSample/tests/build
+        run: |
+          cmake ..
+          make
+          make test
+
+      - name: Report coverage of C++ code in the R package
+        continue-on-error: true
+        working-directory: ./r_proj/rCppSample/tests/build/CMakeFiles/test_popcount.dir
+        run: |
+          lcov -d . -c -o coverage.info
+          lcov -r coverage.info */googletest/* test/* */c++/* -o coverageFiltered.info
+          genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
