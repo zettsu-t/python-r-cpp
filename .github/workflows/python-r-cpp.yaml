@@ -1,0 +1,118 @@
+on:
+  push:
+    branches:
+      - main
+      - master
+      - actions
+  pull_request:
+    branches:
+      - main
+      - master
+
+name: Build-test
+
+jobs:
+  Build-test:
+    runs-on: ubuntu-20.04
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      LANG: ja_JP.UTF-8
+      LANGUAGE: ja_JP:ja
+      LC_ALL: ja_JP.UTF-8
+    steps:
+      - uses: actions/checkout@v2
+      - uses: r-lib/actions/setup-pandoc@v1
+      - uses: r-lib/actions/setup-r@v1
+        with:
+          r-version: 4.1.2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
+
+      - name: Install Linux package dependencies
+        run: |
+          sudo apt-get update && apt-get install -y build-essential cmake curl doxygen git git-core gnupg2 graphviz language-pack-ja lcov less make pandoc pandoc-citeproc patch python3-dev python3-numpy python3-sphinx qpdf software-properties-common unzip wget zlib1g-dev libcairo2-dev libcurl4-openssl-dev libgit2-dev libicu-dev libpng-dev libpython3-dev libssl-dev libtbb2 libxml2-dev libxt6 libxt-dev
+
+      - name: Setup a language pack
+        run: |
+          sudo update-locale LANG=ja_JP.UTF-8
+          sudo locale-gen ja_JP.UTF-8
+
+      - name: Install python package dependencies
+        run: |
+          sudo python -m pip autopep8 check-manifest coverage find_libpython flake8 mypy numpy pep8 pipenv pybind11 pybind11-global pylint pytest pytest-benchmark pytest-cov py_pkg sphinx sphinx_rtd_theme types-requests
+          sudo mkdir -p /usr/lib/python3.8/site-packages
+          sudo chmod ugo+w /usr/lib/python3.8/site-packages
+
+      - name: Install Boost C++ libraries
+        working-directory: ./boost_1_78_0
+        run: |
+          sudo wget https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.gz
+          sudo tar xzf boost_1_78_0.tar.gz
+          sudo ./bootstrap.sh --with-libraries=python --with-python=python3.8 --with-python-version=3.8
+          sudo ./b2 install cxxflags=-fPIC address-model=64 threading=multi link=static,shared runtime-link=static variant=release -j4 --prefix=/opt/boost_1_78_0
+          sudo test -d /opt/boost || ln -s /opt/boost_1_78_0 /opt/boost
+          sudo test -f "/opt/${BOOST_VERSION}/lib/libboost_python.a" || ln -s "/opt/${BOOST_VERSION}/lib/libboost_python38.a" "/opt/${BOOST_VERSION}/lib/libboost_python.a"
+          sudo test -f "/opt/${BOOST_VERSION}/lib/libboost_numpy.a" || ln -s "/opt/${BOOST_VERSION}/lib/libboost_numpy38.a" "/opt/${BOOST_VERSION}/lib/libboost_numpy.a"
+          sudo test -f "/opt/${BOOST_VERSION}/lib/libboost_python.so" || ln -s "/opt/${BOOST_VERSION}/lib/libboost_python38.so" "/opt/${BOOST_VERSION}/lib/libboost_python.so"
+          sudo test -f "/opt/${BOOST_VERSION}/lib/libboost_numpy.so" || ln -s "/opt/${BOOST_VERSION}/lib/libboost_numpy38.so" "/opt/${BOOST_VERSION}/lib/libboost_numpy.so"
+
+      - name: Install R packages
+        run: |
+          install.packages(c("remotes", "devtools"))
+          devtools::install_github("wch/extrafont")
+          install.packages(c("Rcpp", "testthat", "spelling", "covr", "devtools", "DT", "microbenchmark", "purrr", "lintr", "styler", "knitr", "markdown", "rmarkdown", "kableExtra"))
+          remotes::install_version("Rttf2pt1", version = "1.3.8")
+        shell: Rscript {0}
+
+      - name: Testing an R package
+        run: |
+          cd r_proj
+          R CMD build rCppSample
+          RUN R CMD INSTALL rCppSample_0.0.0.9000.tar.gz
+          Rscript tests/r_tests.R
+          cd rCppSample
+          mkdir -p tests/build
+          cd tests/build
+          RUN cmake ..
+          RUN make
+          RUN make test
+          cd CMakeFiles/test_popcount.dir
+          lcov -d . -c -o coverage.info
+          lcov -r coverage.info */googletest/* test/* */c++/* -o coverageFiltered.info
+          genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
+          cd ../../../..
+
+      - name: Testing a Python package
+        run: |
+          cd ../../python_proj/py_cpp_sample
+          python3.8 setup.py bdist_wheel
+          pip install --force --user dist/py_cpp_sample-0.0.1-cp38-cp38-linux_x86_64.whl
+          pytest tests
+          flake8 --exclude tests/build src tests
+          pylint src tests
+          mypy src
+          pip install --force --user -e .
+          export PYTHONPATH=src; pytest --cov=src --cov=tests --cov-report=html tests; unset PYTHONPATH
+          coverage report -m
+          coverage html
+          mkdir -p tests/build
+          cd tests/build
+          RUN cmake ..
+          RUN make
+          RUN make test
+          cd CMakeFiles/test_popcount.dir
+          lcov -d . -c -o coverage.info
+          lcov -r coverage.info */googletest/* test/* */c++/* -o coverageFiltered.info
+          genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
+          cd ../../../..
+          sphinx-quickstart -q -p py_cpp_sample -a "Author's name"
+          patch < patch/conf.py.diff
+          patch < patch/index.rst.diff
+          export PYTHONPATH=src; make html; unset PYTHONPATH
+          mkdir -p docs
+          cd docs
+          doxygen -g
+          patch < ../patch/Doxyfile.diff
+          doxygen
