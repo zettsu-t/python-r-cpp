@@ -61,6 +61,8 @@ jobs:
           sudo python -m pip install autopep8 check-manifest coverage find_libpython flake8 mypy numpy pep8 pipenv pybind11 pybind11-global pylint pytest pytest-benchmark pytest-cov py_pkg sphinx sphinx_rtd_theme types-requests
           sudo mkdir -p /usr/lib/python3.8/site-packages
           sudo chmod ugo+w /usr/lib/python3.8/site-packages
+          find / -name "pybind11.h"
+          find / -name "site-packages"
 
       - name: Install R package dependencies
         continue-on-error: true
@@ -71,14 +73,28 @@ jobs:
           remotes::install_version("Rttf2pt1", version = "1.3.8")
         shell: Rscript {0}
 
-      - name: Testing R code
+      - name: Install the R Package
         continue-on-error: true
         working-directory: ./r_proj
         run: |
           mkdir -p rCppSample/tests/build
           R CMD build rCppSample
           R CMD INSTALL rCppSample_0.0.0.9000.tar.gz
-          Rscript tests/r_tests.R
+
+      - name: Testing R code on R REPL
+        continue-on-error: true
+        working-directory: ./r_proj/rCppSample
+        run: |
+          remotes::install_local("../rCppSample_0.0.0.9000.tar.gz", dependencies = "Imports")
+          library(rCppSample)
+          devtools::test()
+          coverage_report <- covr::package_coverage()
+          print(coverage_report)
+          covr::report(coverage_report, "./coverage_report.html")
+          lintr::lint_package()
+          devtools::document()
+          rmarkdown::render("README.Rmd", "github_document")
+        shell: Rscript {0}
 
       - name: Testing C++ code in the R package
         continue-on-error: true
@@ -102,7 +118,7 @@ jobs:
         run: |
           mkdir -p tests/build
           mkdir -p docs
-          python3.8 setup.py bdist_wheel
+          python setup.py bdist_wheel
           pip install --force --user dist/py_cpp_sample-0.0.1-cp38-cp38-linux_x86_64.whl
           pytest tests
           flake8 --exclude tests/build src tests
