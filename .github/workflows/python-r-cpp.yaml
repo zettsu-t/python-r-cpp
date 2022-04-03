@@ -53,7 +53,8 @@ jobs:
       - name: Install python package dependencies
         continue-on-error: true
         run: |
-          sudo pip install autopep8 check-manifest coverage find_libpython flake8 mypy numpy pep8 pipenv pybind11 pybind11-global pylint pytest pytest-benchmark pytest-cov py_pkg sphinx sphinx_rtd_theme types-requests
+          sudo python -m pip install --upgrade pip
+          sudo pip install autopep8 check-manifest coverage find_libpython flake8 mypy numpy pep8 pipenv pybind11 pybind11-global pylint pytest pytest-benchmark pytest-cov py_pkg sphinx sphinx_rtd_theme types-requests wheel
           sudo mkdir -p /usr/lib/python3.8/site-packages
           sudo chmod ugo+w /usr/lib/python3.8/site-packages
 
@@ -63,6 +64,7 @@ jobs:
         run: |
           mkdir -p tests/build
           mkdir -p docs
+          python -m pip install --upgrade pip
           pip install autopep8 check-manifest coverage find_libpython flake8 mypy numpy pep8 pipenv pybind11 pybind11-global pylint pytest pytest-benchmark pytest-cov py_pkg sphinx sphinx_rtd_theme types-requests wheel
           python setup.py bdist_wheel
           pip install --force --user dist/py_cpp_sample-0.0.1-cp38-cp38-linux_x86_64.whl
