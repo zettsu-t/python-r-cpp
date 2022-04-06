@@ -1,3 +1,4 @@
+#include <boost/type_traits.hpp>
 #include "popcount_boost.hpp"
 
 namespace py_cpp_sample {
@@ -26,9 +27,12 @@ namespace py_cpp_sample {
         for(decltype(size) i {0}; i < size; ++i) {
             const auto value = src[i];
 #ifdef __GNUC__
+            static_assert(std::is_convertible<SourceType, unsigned long long>::value);
+            static_assert(std::is_same<unsigned long long,
+                          boost::function_traits<decltype(__builtin_popcountll)>::arg1_type>::value);
             const auto count = static_cast<Count>(__builtin_popcountll(value));
 #else
-#error Use an alternative of __builtin_popcount
+#error Use an alternative of __builtin_popcountll
 #endif
             dst[i] = count;
         }

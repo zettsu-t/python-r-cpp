@@ -30,13 +30,14 @@ RUN apt install -y libxt-dev
 ENV R_HOME="/usr/local/lib/R"
 
 ## R packages
-RUN R -e 'install.packages(c("remotes", "devtools"))'
+RUN Rscript -e 'install.packages(c("remotes", "devtools"))'
 RUN mkdir -p /usr/local/lib/R/etc
 RUN echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl', Ncpus = 4)" >> /usr/local/lib/R/etc/Rprofile.site
-RUN R -e 'devtools::install_github("wch/extrafont")'
-RUN R -e 'install.packages(c("Rcpp"))'
-RUN R -e 'install.packages(c("testthat", "spelling", "covr", "devtools", "DT", "microbenchmark", "dplyr", "ggplot2", "purrr", "lintr", "styler", "knitr", "markdown", "rmarkdown", "kableExtra"))'
-RUN R -e 'remotes::install_version("Rttf2pt1", version = "1.3.8")'
+RUN Rscript -e 'install.packages(c("Rcpp"))'
+RUN Rscript -e 'install.packages(c("testthat", "spelling", "covr", "devtools", "DT", "microbenchmark", "dplyr", "ggplot2", "purrr", "lintr", "styler", "knitr", "markdown", "rmarkdown", "kableExtra"))'
+RUN Rscript -e 'devtools::install_github("wch/extrafont")'
+RUN Rscript -e 'remotes::install_github("hrbrmstr/cloc")'
+RUN Rscript -e 'remotes::install_version("Rttf2pt1", version = "1.3.8")'
 
 ## Copy projects
 ARG PROJECTS_TOP_DIR=/root/work
@@ -47,6 +48,10 @@ RUN mkdir -p "${PYTHON_PROJECT_DIR}"
 RUN mkdir -p "${R_PROJECT_DIR}"
 COPY python_proj/ "${PROJECTS_TOP_DIR}/python_proj/"
 COPY r_proj/ "${PROJECTS_TOP_DIR}/r_proj/"
+
+## cloc
+RUN Rscript -e "cloc::cloc('${PYTHON_PROJECT_DIR}')"
+RUN Rscript -e "cloc::cloc('${R_PROJECT_DIR}')"
 
 ## Testing an R package
 WORKDIR "${PROJECTS_TOP_DIR}/r_proj"

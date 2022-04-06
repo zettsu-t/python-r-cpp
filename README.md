@@ -8,6 +8,12 @@
 
 [rCppSample](r_proj/rCppSample/README.md)
 
+## Test all
+
+```bash
+docker build -t python_r_cpp_test . --progress=plain
+```
+
 Copyright (c) 2022 Zettsu Tatsuya
 
 These packages are released under the MIT License, see [LICENSE](LICENSE).

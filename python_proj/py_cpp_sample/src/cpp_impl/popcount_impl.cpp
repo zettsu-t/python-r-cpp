@@ -41,7 +41,7 @@ namespace py_cpp_sample {
 #ifdef __GNUC__
             const auto count = static_cast<Count>(__builtin_popcountll(value));
 #else
-#error Use an alternative of __builtin_popcount
+#error Use an alternative of __builtin_popcountll
 #endif
             dst[i] = count;
         }

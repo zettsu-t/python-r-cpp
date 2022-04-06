@@ -55,7 +55,7 @@ make
 make test
 cd ~/work/rCppSample/tests/build/CMakeFiles/test_popcount.dir
 lcov -d . -c -o coverage.info
-lcov -r coverage.info */googletest/* test/* */c++/* -o coverageFiltered.info
+lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info
 genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 mkdir -p docs
 cd docs
@@ -65,6 +65,7 @@ cd docs
 
 ``` r
 devtools::document()
+rmarkdown::render("README.Rmd")
 ```
 
 ## Benchmarking
@@ -90,13 +91,13 @@ ratio (median)
 <tbody>
 <tr>
 <td style="text-align:left;">
-popcount_raw_r(raw_set)
+rCppSample::popcount(raw_set)
 </td>
 <td style="text-align:left;">
-22.7845
+9.46828
 </td>
 <td style="text-align:left;">
-17.1107
+7.09195
 </td>
 <td style="text-align:left;">
 1.00000
@@ -104,30 +105,30 @@ popcount_raw_r(raw_set)
 </tr>
 <tr>
 <td style="text-align:left;">
-rCppSample::popcount(raw_set)
+rCppSample::popcount(integer_set)
 </td>
 <td style="text-align:left;">
-34.0327
+9.88214
 </td>
 <td style="text-align:left;">
-32.5926
+7.87855
 </td>
 <td style="text-align:left;">
-1.90481
+1.11091
 </td>
 </tr>
 <tr>
 <td style="text-align:left;">
-rCppSample::popcount(integer_set)
+popcount_raw_r(raw_set)
 </td>
 <td style="text-align:left;">
-33.9514
+21.54808
 </td>
 <td style="text-align:left;">
-32.6570
+16.90710
 </td>
 <td style="text-align:left;">
-1.90857
+2.38398
 </td>
 </tr>
 <tr>
@@ -135,13 +136,13 @@ rCppSample::popcount(integer_set)
 popcount_integer_r(integer_set)
 </td>
 <td style="text-align:left;">
-142.3636
+138.72417
 </td>
 <td style="text-align:left;">
-141.2836
+131.02085
 </td>
 <td style="text-align:left;">
-8.25703
+18.47459
 </td>
 </tr>
 </tbody>

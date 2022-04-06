@@ -67,7 +67,7 @@ make
 make test
 cd ~/work/rCppSample/tests/build/CMakeFiles/test_popcount.dir
 lcov -d . -c -o coverage.info
-lcov -r coverage.info */googletest/* test/* */c++/* -o coverageFiltered.info
+lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info
 genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 mkdir -p docs
 cd docs
@@ -77,6 +77,7 @@ cd docs
 
 ```r
 devtools::document()
+rmarkdown::render("README.Rmd")
 ```
 
 ## Benchmarking
