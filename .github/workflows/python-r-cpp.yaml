@@ -92,7 +92,7 @@ jobs:
         working-directory: ./python_proj/py_cpp_sample/tests/build/CMakeFiles/test_popcount.dir
         run: |
           lcov -d . -c -o coverage.info
-          lcov -r coverage.info */googletest/* test/* */c++/* -o coverageFiltered.info
+          lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info
           genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 
       - name: Make documents for Python code in the Python package
@@ -121,8 +121,9 @@ jobs:
         continue-on-error: true
         run: |
           install.packages(c("remotes", "devtools"))
-          devtools::install_github("wch/extrafont")
           install.packages(c("Rcpp", "testthat", "spelling", "covr", "devtools", "DT", "microbenchmark", "dplyr", "ggplot2", "purrr", "lintr", "styler", "knitr", "markdown", "rmarkdown", "kableExtra"))
+          remotes::install_github("wch/extrafont")
+          remotes::install_github("hrbrmstr/cloc")
           remotes::install_version("Rttf2pt1", version = "1.3.8")
         shell: Rscript {0}
 
@@ -162,5 +163,5 @@ jobs:
         working-directory: ./r_proj/rCppSample/tests/build/CMakeFiles/test_popcount.dir
         run: |
           lcov -d . -c -o coverage.info
-          lcov -r coverage.info */googletest/* test/* */c++/* -o coverageFiltered.info
+          lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info
           genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
