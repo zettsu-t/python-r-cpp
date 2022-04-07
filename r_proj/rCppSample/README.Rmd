@@ -127,7 +127,9 @@ result <- microbenchmark::microbenchmark(
 ```
 
 ```{r draw_benchmark, echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE}
-autoplot(result, log = FALSE)
+g <- autoplot(result, log = FALSE)
+ggsave("benchmark.png", g, width=6, height=3)
+plot(g)
 
 df_result <- tibble::as_tibble(summary(result))
 min_median <- min(df_result$median)

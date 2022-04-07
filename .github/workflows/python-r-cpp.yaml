@@ -58,6 +58,28 @@ jobs:
           sudo mkdir -p /usr/lib/python3.8/site-packages
           sudo chmod ugo+w /usr/lib/python3.8/site-packages
 
+      - name: Setup a language pack
+        run: |
+          sudo update-locale LANG=ja_JP.UTF-8
+          sudo locale-gen ja_JP.UTF-8
+
+      - name: Install R package dependencies
+        continue-on-error: true
+        run: |
+          install.packages(c("remotes", "devtools"))
+          install.packages(c("Rcpp", "testthat", "spelling", "covr", "devtools", "DT", "microbenchmark", "dplyr", "ggplot2", "purrr", "lintr", "styler", "knitr", "markdown", "rmarkdown", "kableExtra"))
+          remotes::install_github("wch/extrafont")
+          remotes::install_github("hrbrmstr/cloc")
+          remotes::install_version("Rttf2pt1", version = "1.3.8")
+        shell: Rscript {0}
+
+      - name: Measure CLOC
+        continue-on-error: true
+        run: |
+          cloc::cloc("python_proj/py_cpp_sample")
+          cloc::cloc("r_proj/rCppSample")
+        shell: Rscript {0}
+
       - name: Testing Python code
         continue-on-error: true
         working-directory: ./python_proj/py_cpp_sample
@@ -111,21 +133,6 @@ jobs:
           doxygen -g
           patch < ../patch/Doxyfile.diff
           doxygen
-
-      - name: Setup a language pack
-        run: |
-          sudo update-locale LANG=ja_JP.UTF-8
-          sudo locale-gen ja_JP.UTF-8
-
-      - name: Install R package dependencies
-        continue-on-error: true
-        run: |
-          install.packages(c("remotes", "devtools"))
-          install.packages(c("Rcpp", "testthat", "spelling", "covr", "devtools", "DT", "microbenchmark", "dplyr", "ggplot2", "purrr", "lintr", "styler", "knitr", "markdown", "rmarkdown", "kableExtra"))
-          remotes::install_github("wch/extrafont")
-          remotes::install_github("hrbrmstr/cloc")
-          remotes::install_version("Rttf2pt1", version = "1.3.8")
-        shell: Rscript {0}
 
       - name: Install the R Package
         continue-on-error: true
