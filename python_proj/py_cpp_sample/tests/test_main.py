@@ -237,6 +237,28 @@ def test_invalid_element_type():
         popcount_boost(arg)
 
 
+def test_negative_integer_type():
+    """Negative integers"""
+    arg8 = np.array([-1, -2], dtype=np.int8)
+    arg16 = np.array([-4, -8], dtype=np.int16)
+    arg32 = np.array([-16, -32], dtype=np.int32)
+    expected8 = np.array([64, 63], dtype=np.uint8)
+    expected16 = np.array([62, 61], dtype=np.uint8)
+    expected32 = np.array([60, 59], dtype=np.uint8)
+    assert np.all(popcount(arg8) == expected8)
+    assert np.all(popcount(arg16) == expected16)
+    assert np.all(popcount(arg32) == expected32)
+
+    with pytest.raises(ValueError, match=EXPECTED_ERROR_COMMON_MSG):
+        popcount_boost(arg8)
+
+    with pytest.raises(ValueError, match=EXPECTED_ERROR_COMMON_MSG):
+        popcount_boost(arg16)
+
+    with pytest.raises(ValueError, match=EXPECTED_ERROR_COMMON_MSG):
+        popcount_boost(arg32)
+
+
 @pytest.mark.parametrize("target_func", POPCOUNT_SET)
 def test_some_values_uint8(target_func):
     """Some uint8 values"""

@@ -20,5 +20,6 @@ setup(
         library_dirs=['/opt/boost/lib'],
         runtime_library_dirs=[],
         libraries=['boost_python', 'boost_numpy'],
+        extra_compile_args=['-isystem', '/opt/boost/include']
     )]
 )
