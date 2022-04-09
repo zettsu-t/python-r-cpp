@@ -1,6 +1,6 @@
+#include <cstdint>
 #include <boost/python.hpp>
 #include <boost/python/numpy.hpp>
-#include <cstdint>
 
 /**
  C++ implementation

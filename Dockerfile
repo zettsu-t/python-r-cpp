@@ -59,6 +59,7 @@ RUN R CMD build rCppSample
 RUN R CMD INSTALL rCppSample_0.0.0.9000.tar.gz
 WORKDIR "${R_PROJECT_DIR}"
 RUN Rscript "${R_PROJECT_DIR}/../tests/r_tests.R"
+RUN find src -name "*.so" | xargs objdump -d -M intel | grep popcnt
 
 RUN mkdir -p "${R_PROJECT_DIR}/tests/build"
 WORKDIR "${R_PROJECT_DIR}/tests/build"
@@ -76,6 +77,7 @@ WORKDIR "${PYTHON_PROJECT_DIR}"
 RUN python3.8 setup.py bdist_wheel
 RUN pip3 install --force --user dist/py_cpp_sample-0.0.1-cp38-cp38-linux_x86_64.whl
 RUN pytest tests
+RUN find build -name "*.so" | xargs objdump -d -M intel | grep popcnt
 RUN flake8 --exclude tests/build src tests
 RUN pylint src tests
 RUN mypy src

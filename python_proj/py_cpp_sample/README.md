@@ -140,11 +140,13 @@ In this package, pytest measures performance of Python and C++ code.
 pytest tests
 ```
 
-|Name (time in ms)|Mean|Median|
-|:------------------------|:----------------|:---------------|
-|test_popcount_py_uint8|4.6071 (1.0)|4.5590 (1.0)|
-|test_popcount_cpp_uint8|5.8161 (1.26)|5.7971 (1.27)|
-|test_popcount_cpp_uint64|5.8555 (1.27)|5.8595 (1.29)|
-|test_popcount_cpp_uint8_boost|6.4801 (1.41)|6.4774 (1.42)|
-|test_popcount_cpp_uint64_boost|6.5439 (1.42)|6.5480 (1.44)|
-|test_popcount_py_uint64|95.6931 (20.77)|95.5873 (20.97)|
+If the target is x86-64, make sure `extra_compile_args` in setup.py includes `-msse4.2` that lets compilers use the popcnt instruction.
+
+|Name (time in us)|Median|
+|:------------------------|:-------------------------------|
+|test_popcount_cpp_uint8|817.8250 (1.0)|
+|test_popcount_cpp_uint8_boost|1,026.9750 (1.26)|
+|test_popcount_cpp_uint64|1,307.8000 (1.60)|
+|test_popcount_cpp_uint64_boost|1,474.6000 (1.80)|
+|test_popcount_py_uint8|4,625.5250 (5.66)|
+|test_popcount_py_uint64|96,573.4250 (118.09)|

@@ -1,6 +1,7 @@
+#include <limits>
 #include <cstdint>
 #include <gtest/gtest.h>
-#include "test_popcount.h"
+#include "test_popcount.hpp"
 
 class TestPopcount : public ::testing::Test {};
 
@@ -32,6 +33,23 @@ TEST_F(TestPopcount, IntegerValues) {
         0x10000, 0x7ffffffe, 0x7fffffff, 0x70f0f0f0, 0xf0f0f0f};
     const rCppSample::IntegerVector expected {
         0, 1, 7, 8, 1, 16, 1, 30, 31, 15, 16
+    };
+    const auto actual = popcount_cpp_integer(arg);
+    ASSERT_EQ(expected.size(), actual.size());
+
+    auto size = actual.size();
+    for(decltype(size) i {0}; i < size; ++i) {
+        EXPECT_EQ(expected.at(i), actual.at(i));
+    }
+}
+
+TEST_F(TestPopcount, NAs) {
+    // Check NA values
+    const rCppSample::IntegerVector arg {
+        2, rCppSample::NaInteger, 14, rCppSample::NaInteger, 62
+    };
+    const rCppSample::IntegerVector expected {
+        1, rCppSample::NaInteger, 3, rCppSample::NaInteger, 5
     };
     const auto actual = popcount_cpp_integer(arg);
     ASSERT_EQ(expected.size(), actual.size());

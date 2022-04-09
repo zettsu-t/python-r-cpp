@@ -1,3 +1,5 @@
+#include <limits>
+#include <stdexcept>
 #include <type_traits>
 #include <boost/type_traits.hpp>
 #include "popcount_boost.hpp"
@@ -28,8 +30,11 @@ namespace py_cpp_sample {
         for(decltype(size) i {0}; i < size; ++i) {
             const auto value = src[i];
 #ifdef __GNUC__
-            static_assert(std::is_convertible<SourceType, unsigned long long>::value);
-            static_assert(std::is_same<unsigned long long,
+            using PopcountArg = unsigned long long;
+            static_assert(std::is_unsigned<SourceType>::value);
+            static_assert(std::is_unsigned<PopcountArg>::value);
+            static_assert(std::numeric_limits<SourceType>::max() <= std::numeric_limits<PopcountArg>::max());
+            static_assert(std::is_same<PopcountArg,
                           boost::function_traits<decltype(__builtin_popcountll)>::arg1_type>::value);
             const auto count = static_cast<Count>(__builtin_popcountll(value));
 #else

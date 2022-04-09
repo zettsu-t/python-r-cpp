@@ -1,4 +1,4 @@
-#include "popcount.h"
+#include "popcount.hpp"
 
 /*
 Local Variables:

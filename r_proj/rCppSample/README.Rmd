@@ -82,11 +82,14 @@ rmarkdown::render("README.Rmd")
 
 ## Benchmarking
 
+If the target is x86-64, make sure Makevars includes `PKG_CXXFLAGS=-msse4.2` that lets compilers use the popcnt instruction.
+
 ```{r setup_benchmark, echo = FALSE, message = FALSE, cache = TRUE}
 library(rCppSample)
 library(dplyr)
 library(ggplot2)
 library(microbenchmark)
+library(purrr)
 library(kableExtra)
 
 popcount_table <- purrr::map_dbl(0:255, function(x) {
@@ -98,10 +101,12 @@ popcount_raw_r <- function(xs) {
 }
 
 popcount_integer_r <- function(xs) {
-  popcount_raw_r(bitwAnd(xs, 0xff)) +
+  ifelse(is.na(xs), rep(NA_integer_, NROW(xs)),
+    popcount_raw_r(bitwAnd(xs, 0xff)) +
     popcount_raw_r(bitwAnd(bitwShiftR(xs, 8), 0xff)) +
     popcount_raw_r(bitwAnd(bitwShiftR(xs, 16), 0xff)) +
     popcount_raw_r(bitwAnd(bitwShiftR(xs, 24), 0xff))
+  )
 }
 
 n_set_size <- 10000
@@ -113,6 +118,15 @@ integer_set <- as.integer(floor(runif(n = n_xs_size, min = 0, max = 0x7ffffffe))
 stopifnot(NROW(raw_set) == NROW(integer_set))
 stopifnot(all(popcount_raw_r(raw_set) == rCppSample::popcount(raw_set)))
 stopifnot(all(popcount_integer_r(integer_set) == rCppSample::popcount(integer_set)))
+
+integer_na_set <- as.integer(c(2, NA, 14))
+expected_na_set <- as.integer(c(1, NA, 3))
+
+are_equal_with_nas <- function(x, y) {
+  (NROW(x) == NROW(y)) && all(purrr::map2_lgl(x, y, `%in%`))
+}
+stopifnot(are_equal_with_nas(popcount_integer_r(integer_na_set), expected_na_set))
+stopifnot(are_equal_with_nas(rCppSample::popcount(integer_na_set), expected_na_set))
 ```
 
 ```{r run_benchmark, echo = FALSE, message = FALSE, warning = FALSE, cache = TRUE}
@@ -135,11 +149,10 @@ df_result <- tibble::as_tibble(summary(result))
 min_median <- min(df_result$median)
 
 df_result %>%
-  dplyr::select("expr", "mean", "median") %>%
+  dplyr::select("expr", "median") %>%
   dplyr::rename(method = expr) %>%
   dplyr::mutate(ratio = median / min_median) %>%
   dplyr::arrange(ratio) %>%
-  dplyr::rename(`ratio (median)` = ratio) %>%
   mutate_if(is.numeric, format, digits = 6, nsmall = 4) %>%
   kableExtra::kable()
 ```

@@ -1,4 +1,5 @@
 #ifdef UNIT_TEST_CPP
+#include <limits>
 #include <vector>
 #include <cstdint>
 #else // UNIT_TEST_CPP
@@ -12,11 +13,13 @@ namespace rCppSample {
     using RawVector = std::vector<uint8_t>;
     using ArgIntegerVector = const std::vector<int>&;
     using ArgRawVector = const std::vector<uint8_t>&;
+    constexpr int NaInteger = std::numeric_limits<int>::min();
 #else // UNIT_TEST_CPP
     using IntegerVector = Rcpp::IntegerVector;
     using RawVector = Rcpp::RawVector;
     using ArgIntegerVector = Rcpp::IntegerVector;
     using ArgRawVector = Rcpp::RawVector;
+    const int NaInteger = NA_INTEGER;
 #endif // UNIT_TEST_CPP
 }
 

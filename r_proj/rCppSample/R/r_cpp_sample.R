@@ -7,6 +7,10 @@
 #' @useDynLib rCppSample, .registration=TRUE
 #' @importFrom Rcpp sourceCpp
 popcount <- function(xs) {
+  if (is.null(xs)) {
+    return(NULL)
+  }
+
   if (is.raw(xs)) {
     return(popcount_cpp_raw(xs))
   }

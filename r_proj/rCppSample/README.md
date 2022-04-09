@@ -70,6 +70,9 @@ rmarkdown::render("README.Rmd")
 
 ## Benchmarking
 
+If the target is x86-64, make sure Makevars includes
+`PKG_CXXFLAGS=-msse4.2` that lets compilers use the popcnt instruction.
+
 <img src="man/figures/README-draw_benchmark-1.png" width="80%" />
 <table>
 <thead>
@@ -78,13 +81,10 @@ rmarkdown::render("README.Rmd")
 method
 </th>
 <th style="text-align:left;">
-mean
-</th>
-<th style="text-align:left;">
 median
 </th>
 <th style="text-align:left;">
-ratio (median)
+ratio
 </th>
 </tr>
 </thead>
@@ -94,10 +94,7 @@ ratio (median)
 rCppSample::popcount(raw_set)
 </td>
 <td style="text-align:left;">
-9.46828
-</td>
-<td style="text-align:left;">
-7.09195
+2.42805
 </td>
 <td style="text-align:left;">
 1.00000
@@ -108,13 +105,10 @@ rCppSample::popcount(raw_set)
 rCppSample::popcount(integer_set)
 </td>
 <td style="text-align:left;">
-9.88214
+2.58995
 </td>
 <td style="text-align:left;">
-7.87855
-</td>
-<td style="text-align:left;">
-1.11091
+1.06668
 </td>
 </tr>
 <tr>
@@ -122,13 +116,10 @@ rCppSample::popcount(integer_set)
 popcount_raw_r(raw_set)
 </td>
 <td style="text-align:left;">
-21.54808
+16.28890
 </td>
 <td style="text-align:left;">
-16.90710
-</td>
-<td style="text-align:left;">
-2.38398
+6.70863
 </td>
 </tr>
 <tr>
@@ -136,13 +127,10 @@ popcount_raw_r(raw_set)
 popcount_integer_r(integer_set)
 </td>
 <td style="text-align:left;">
-138.72417
+173.58930
 </td>
 <td style="text-align:left;">
-131.02085
-</td>
-<td style="text-align:left;">
-18.47459
+71.49330
 </td>
 </tr>
 </tbody>

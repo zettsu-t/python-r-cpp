@@ -1,4 +1,5 @@
 #include <limits>
+#include <stdexcept>
 #include <type_traits>
 #include <vector>
 #include <gtest/gtest.h>
