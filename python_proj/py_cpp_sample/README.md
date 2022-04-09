@@ -48,8 +48,8 @@ popcount(a)
 pip3 uninstall -y py_cpp_sample
 pip3 install --force --user dist/py_cpp_sample-0.0.1-cp38-cp38-linux_x86_64.whl
 pytest tests
-flake8 --exclude tests/build src tests
-pylint src tests
+flake8 --exclude tests/build src tests setup.py
+pylint src tests setup.py
 mypy src
 ```
 

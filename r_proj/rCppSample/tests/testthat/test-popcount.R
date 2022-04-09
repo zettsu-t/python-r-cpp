@@ -1,3 +1,7 @@
+are_equal_with_nas <- function(x, y) {
+  (NROW(x) == NROW(y)) && all(purrr::map2_lgl(x, y, `%in%`))
+}
+
 test_that("empty", {
   arg_raw <- raw()
   arg_integer <- integer()
@@ -13,13 +17,10 @@ test_that("NULL and other non-integers", {
   expect_true(is.null(rCppSample::popcount(NULL)))
   expect_true(is.na(rCppSample::popcount(NaN)))
   expect_true(is.na(suppressWarnings(rCppSample::popcount(Inf))))
+  expect_true(is.na(suppressWarnings(rCppSample::popcount(-Inf))))
 })
 
 test_that("NAs", {
-  are_equal_with_nas <- function(x, y) {
-    (NROW(x) == NROW(y)) && all(purrr::map2_lgl(x, y, `%in%`))
-  }
-
   integer_na_set <- as.integer(c(2, NA, 14, NA, 62))
   expected_na_set <- as.integer(c(1, NA, 3, NA, 5))
   expect_true(are_equal_with_nas(popcount(integer_na_set), expected_na_set))
@@ -68,4 +69,11 @@ test_that("popcount_negative_integer_value", {
   actual <- rCppSample::popcount(arg)
   expect_equal(NROW(actual), NROW(expected))
   expect_true(all(actual == expected))
+})
+
+test_that("Floating numbers", {
+  arg <- c(7.1, 7.9, 8.0, 1e+50, -7.1, -7.9, -8.0, -1e+50)
+  expected <- c(3, 3, 1, NA, 30, 30, 29, NA)
+  actual <- suppressWarnings(popcount(arg))
+  expect_true(are_equal_with_nas(actual, expected))
 })

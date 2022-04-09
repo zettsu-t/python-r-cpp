@@ -78,8 +78,8 @@ RUN python3.8 setup.py bdist_wheel
 RUN pip3 install --force --user dist/py_cpp_sample-0.0.1-cp38-cp38-linux_x86_64.whl
 RUN pytest tests
 RUN find build -name "*.so" | xargs objdump -d -M intel | grep -i popcnt
-RUN flake8 --exclude tests/build src tests
-RUN pylint src tests
+RUN flake8 --exclude tests/build src tests setup.py
+RUN pylint src tests setup.py
 RUN mypy src
 
 RUN pip3 install --force --user -e .
