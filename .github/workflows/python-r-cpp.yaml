@@ -91,6 +91,7 @@ jobs:
           python setup.py bdist_wheel
           pip install --force --user dist/py_cpp_sample-0.0.1-cp38-cp38-linux_x86_64.whl
           pytest tests
+          find build -name "*.so" | xargs objdump -d -M intel | grep -i popcnt
           flake8 --exclude tests/build src tests
           pylint src tests
           mypy src
@@ -156,6 +157,12 @@ jobs:
           devtools::document()
           rmarkdown::render("README.Rmd", "github_document")
         shell: Rscript {0}
+
+      - name: Check the popcnt instruction is used
+        continue-on-error: true
+        working-directory: ./r_proj/rCppSample
+        run: |
+          find src -name "*.so" | xargs objdump -d -M intel | grep -i popcnt
 
       - name: Testing C++ code in the R package
         continue-on-error: true
