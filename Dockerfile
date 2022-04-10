@@ -73,7 +73,7 @@ RUN lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFil
 RUN genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 WORKDIR "${R_PROJECT_DIR}"
 
-RUN clang-tidy src/*.cpp tests/*.cpp -checks=perf\*  -- -I src -I /usr/local/lib/R/include -I /usr/local/lib/R/site-library/Rcpp/include -I tests/build/googletest-src/googletest/include
+RUN clang-tidy src/*.cpp tests/*.cpp -checks=perf\*  -- -I src -I "${R_HOME}/include" -I "${R_HOME}/site-library/Rcpp/include" -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
 
 ## Testing a Python package
 WORKDIR "${PYTHON_PROJECT_DIR}"
@@ -101,7 +101,7 @@ RUN lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFil
 RUN genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 WORKDIR "${PYTHON_PROJECT_DIR}"
 
-RUN clang-tidy src/cpp_impl/*.cpp src/cpp_impl_boost/*.cpp tests/*.cpp -checks=perf\* -- -I src/cpp_impl -I src/cpp_impl_boost -I /opt/boost/include -I $(python -m sysconfig | egrep "\\bINCLUDEPY" | awk '{print $3}' | sed -e 's/"//g') -I tests/build/googletest-src/googletest/include
+RUN clang-tidy src/cpp_impl/*.cpp src/cpp_impl_boost/*.cpp tests/*.cpp -checks=perf\* -- -I src/cpp_impl -I src/cpp_impl_boost -I /opt/boost/include -I $(python -m sysconfig | egrep "\\bINCLUDEPY" | awk '{print $3}' | sed -e 's/"//g') -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
 
 RUN sphinx-quickstart -q -p py_cpp_sample -a "Author's name"
 RUN patch < patch/conf.py.diff

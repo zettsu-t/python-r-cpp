@@ -191,4 +191,4 @@ jobs:
         continue-on-error: true
         working-directory: ./r_proj/rCppSample
         run: |
-          clang-tidy src/*.cpp tests/*.cpp -checks=perf\*  -- -I src -I /usr/local/lib/R/include -I /usr/local/lib/R/site-library/Rcpp/include -I tests/build/googletest-src/googletest/include
+          clang-tidy src/*.cpp tests/*.cpp -checks=perf\*  -- -I src -I "${R_HOME}/include" -I "${R_HOME}/site-library/Rcpp/include" -I tests/build/googletest-src/googletest/include

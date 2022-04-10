@@ -254,7 +254,7 @@ TEST_F(TestPopcountPybind11, ValuesUint8) {
     ASSERT_EQ(array_size, Input_Uint8.size());
 
     const auto arg_array_size = static_cast<PyBindSize>(array_size);
-    PyUint8Array arg({{arg_array_size}});
+    PyUint8Array arg({arg_array_size});
     ASSERT_TRUE(check_numpy_array_type_pybind11<Element>(arg, array_size));
 
     for (decltype(array_size) index{0}; index < array_size; ++index) {
@@ -299,7 +299,7 @@ TEST_F(TestPopcountPybind11, ValuesUint64) {
     ASSERT_EQ(array_size, Input_Uint64.size());
 
     const auto arg_array_size = static_cast<PyBindSize>(array_size);
-    PyUint64Array arg({{arg_array_size}});
+    PyUint64Array arg({arg_array_size});
     ASSERT_TRUE(check_numpy_array_type_pybind11<Element>(arg, array_size));
 
     for (decltype(array_size) index{0}; index < array_size; ++index) {
@@ -345,7 +345,7 @@ TEST_F(TestPopcountPybind11, FullValuesUint8) {
     size_t array_size = element_size * set_size;
     const auto arg_array_size = static_cast<PyBindSize>(array_size);
 
-    PyUint8Array arg({{arg_array_size}});
+    PyUint8Array arg({arg_array_size});
     ASSERT_TRUE(check_numpy_array_type_pybind11<Element>(arg, array_size));
 
     const auto buffer = arg.request();
@@ -395,7 +395,7 @@ TEST_F(TestPopcountPybind11, LargeUint64) {
     constexpr size_t value_offset = 0x7fffffffffffff00;
     const auto arg_array_size = static_cast<PyBindSize>(array_size);
 
-    PyUint64Array arg({{arg_array_size}});
+    PyUint64Array arg({arg_array_size});
     ASSERT_TRUE(check_numpy_array_type_pybind11<Element>(arg, array_size));
 
     const auto buffer = arg.request();
@@ -443,7 +443,7 @@ TEST_F(TestPopcountPybind11, BitsUint64) {
 
     for (size_t count = 0; count < (sizeof(value) * 8 + 1); ++count) {
         constexpr PyBindSize array_size = 1;
-        PyUint64Array arg({{array_size}});
+        PyUint64Array arg({array_size});
         ASSERT_TRUE(check_numpy_array_type_pybind11<Element>(arg, array_size));
 
         *arg.mutable_data(0) = value;

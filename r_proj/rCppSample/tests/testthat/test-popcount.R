@@ -27,7 +27,8 @@ test_that("NAs", {
 
   integer_na_set <- c(NaN, 3, Inf, 15)
   expected_na_set <- c(NA, 2, NA, 4)
-  expect_true(are_equal_with_nas(suppressWarnings(popcount(integer_na_set)), expected_na_set))
+  actual <- suppressWarnings(popcount(integer_na_set))
+  expect_true(are_equal_with_nas(actual, expected_na_set))
 })
 
 test_that("popcount_full_raw_value", {

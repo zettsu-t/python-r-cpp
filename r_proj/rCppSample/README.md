@@ -71,7 +71,7 @@ find . -maxdepth 2 -name "*.[c|h]pp" ! -name RcppExports.cpp -print0 | xargs --n
 We can use clang-tidy to improve C++ code. Note that we have to run the command below after installing Google Test.
 
 ```
-clang-tidy src/*.cpp tests/*.cpp -checks=perf\*  -- -I src -I /usr/local/lib/R/include -I /usr/local/lib/R/site-library/Rcpp/include -I tests/build/googletest-src/googletest/include
+clang-tidy src/*.cpp tests/*.cpp -checks=perf\*  -- -I src -I "${R_HOME}/include" -I "${R_HOME}/site-library/Rcpp/include" -I tests/build/googletest-src/googletest/include
 ```
 
 ## Make documents
