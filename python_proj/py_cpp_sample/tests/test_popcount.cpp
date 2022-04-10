@@ -1,5 +1,5 @@
-#include "popcount.hpp"
-#include "popcount_boost.hpp"
+#include "popcount.h"
+#include "popcount_boost.h"
 #include <gtest/gtest.h>
 #include <limits>
 #include <stdexcept>

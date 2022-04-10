@@ -1,5 +1,5 @@
-#ifndef SRC_POPCOUNT_HPP
-#define SRC_POPCOUNT_HPP
+#ifndef SRC_POPCOUNT_H
+#define SRC_POPCOUNT_H
 
 #ifdef UNIT_TEST_CPP
 #include <cstdint>
@@ -47,7 +47,7 @@ extern Rcpp::IntegerVector popcount_cpp_raw(const Rcpp::RawVector &xs);
 extern Rcpp::IntegerVector popcount_cpp_integer(const Rcpp::IntegerVector &xs);
 #endif // UNIT_TEST_CPP
 
-#endif // SRC_POPCOUNT_HPP
+#endif // SRC_POPCOUNT_H
 
 /*
 Local Variables:

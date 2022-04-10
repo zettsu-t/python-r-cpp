@@ -1,5 +1,5 @@
-#ifndef CPP_IMPL_POPCOUNT_HPP
-#define CPP_IMPL_POPCOUNT_HPP
+#ifndef CPP_IMPL_POPCOUNT_H
+#define CPP_IMPL_POPCOUNT_H
 
 #include <cstdint>
 #include <pybind11/numpy.h>
@@ -30,7 +30,7 @@ popcount_cpp_uint64(pybind11::array_t<uint64_t, pybind11::array::c_style |
                         xs);
 } // namespace py_cpp_sample
 
-#endif // CPP_IMPL_POPCOUNT_HPP
+#endif // CPP_IMPL_POPCOUNT_H
 
 /*
 Local Variables:

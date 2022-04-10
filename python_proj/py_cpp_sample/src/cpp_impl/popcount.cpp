@@ -1,4 +1,4 @@
-#include "popcount.hpp"
+#include "popcount.h"
 
 PYBIND11_MODULE(py_cpp_sample_cpp_impl, mod) {
     mod.doc() = "C++ implementation of the py_cpp_sample package";

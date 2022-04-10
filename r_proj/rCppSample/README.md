@@ -63,16 +63,14 @@ cd docs
 
 We can format C++ code pretty with clang-format.
 
-```
-find . -maxdepth 2 -name "*.[c|h]pp" ! -name RcppExports.cpp -print0 | xargs --null -I{} sh -c 'clang-format -style="{IndentWidth: 4}" $1 > $1.new' -- {}
-find . -maxdepth 2 -name "*.[c|h]pp" ! -name RcppExports.cpp -print0 | xargs --null -I{} sh -c 'diff --unified=0 $1 $1.new' -- {}
-```
+    find . -maxdepth 2 -name "*.[c|h]pp" ! -name RcppExports.cpp -print0 | xargs --null -I{} sh -c 'clang-format -style="{IndentWidth: 4}" $1 > $1.new' -- {}
+    find . -maxdepth 2 -name "*.[c|h]pp" ! -name RcppExports.cpp -print0 | xargs --null -I{} sh -c 'diff --unified=0 $1 $1.new' -- {}
 
-We can use clang-tidy to improve C++ code. Note that we have to run the command below after installing Google Test.
+We can use clang-tidy to improve C++ code. Note that we have to run the
+command below after installing Google Test.
 
-```
-clang-tidy src/*.cpp tests/*.cpp -checks=perf\*  -- -I src -I "${R_HOME}/include" -I "${R_HOME}/site-library/Rcpp/include" -I tests/build/googletest-src/googletest/include
-```
+    echo "-I $(find /usr -name R.h | head -1 | xargs dirname)" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/Rcpp/include"), sep="", collapse=" "))')" > _r_includes
+    clang-tidy src/*.cpp tests/*.cpp -checks=perf\* -- -I src $(cat _r_includes) -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
 
 ## Make documents
 
@@ -107,7 +105,7 @@ ratio
 rCppSample::popcount(raw_set)
 </td>
 <td style="text-align:left;">
-2.42805
+2.39230
 </td>
 <td style="text-align:left;">
 1.00000
@@ -118,10 +116,10 @@ rCppSample::popcount(raw_set)
 rCppSample::popcount(integer_set)
 </td>
 <td style="text-align:left;">
-2.58995
+2.59605
 </td>
 <td style="text-align:left;">
-1.06668
+1.08517
 </td>
 </tr>
 <tr>
@@ -129,10 +127,10 @@ rCppSample::popcount(integer_set)
 popcount_raw_r(raw_set)
 </td>
 <td style="text-align:left;">
-16.28890
+16.25745
 </td>
 <td style="text-align:left;">
-6.70863
+6.79574
 </td>
 </tr>
 <tr>
@@ -140,10 +138,10 @@ popcount_raw_r(raw_set)
 popcount_integer_r(integer_set)
 </td>
 <td style="text-align:left;">
-173.58930
+174.71225
 </td>
 <td style="text-align:left;">
-71.49330
+73.03108
 </td>
 </tr>
 </tbody>

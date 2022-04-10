@@ -1,4 +1,4 @@
-#include "popcount.hpp"
+#include "popcount.h"
 #include <stdexcept>
 
 namespace py_cpp_sample {

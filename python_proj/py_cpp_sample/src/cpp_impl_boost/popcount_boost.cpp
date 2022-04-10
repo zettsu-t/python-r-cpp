@@ -1,4 +1,4 @@
-#include "popcount_boost.hpp"
+#include "popcount_boost.h"
 
 BOOST_PYTHON_MODULE(py_cpp_sample_cpp_impl_boost) {
     Py_Initialize();

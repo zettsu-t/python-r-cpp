@@ -43,7 +43,7 @@ add_subdirectory(${CMAKE_CURRENT_BINARY_DIR}/googletest-src ${CMAKE_CURRENT_BINA
 enable_testing()
 include(GoogleTest)
 
-# Include our .hpp
+# Include header files
 set(BASEPATH "${CMAKE_SOURCE_DIR}")
 include_directories("${BASEPATH}" "${BASEPATH}/../src")
 

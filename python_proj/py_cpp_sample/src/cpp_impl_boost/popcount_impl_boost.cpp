@@ -1,4 +1,4 @@
-#include "popcount_boost.hpp"
+#include "popcount_boost.h"
 #include <boost/type_traits.hpp>
 #include <limits>
 #include <stdexcept>
@@ -38,12 +38,14 @@ popcount_cpp_impl_boost(const boost::python::numpy::ndarray &xs) {
         static_assert(std::numeric_limits<SourceType>::max() <=
                           std::numeric_limits<PopcountArg>::max(),
                       "Avoid narrowing casting");
-        static_assert(
-            std::is_same<PopcountArg,
-                         boost::function_traits<decltype(
-                             __builtin_popcountll)>::arg1_type>::value,
-            "Pass the correct argument to __builtin_popcountll");
-        const auto count = static_cast<Count>(__builtin_popcountll(value));
+#ifndef __clang__
+      static_assert(
+          std::is_same<PopcountArg,
+                       boost::function_traits<decltype(
+                           __builtin_popcountll)>::arg1_type>::value,
+          "Pass the correct argument to __builtin_popcountll");
+#endif
+      const auto count = static_cast<Count>(__builtin_popcountll(value));
 #else
 #error Use an alternative of __builtin_popcountll
 #endif

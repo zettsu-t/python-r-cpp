@@ -1,4 +1,4 @@
-#include "popcount.hpp"
+#include "popcount.h"
 
 namespace {
 template <typename T> bool is_na_integer(const T &x) {

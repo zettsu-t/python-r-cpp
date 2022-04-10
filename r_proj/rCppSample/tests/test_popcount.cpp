@@ -1,4 +1,4 @@
-#include "test_popcount.hpp"
+#include "test_popcount.h"
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <limits>
