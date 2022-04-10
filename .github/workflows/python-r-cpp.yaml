@@ -123,7 +123,7 @@ jobs:
         continue-on-error: true
         working-directory: ./python_proj/py_cpp_sample
         run: |
-          clang-tidy src/cpp_impl/*.cpp src/cpp_impl_boost/*.cpp tests/*.cpp -checks=perf\* -- -I src/cpp_impl -I src/cpp_impl_boost -I /opt/boost/include -I $(python -m sysconfig | egrep "\\bINCLUDEPY" | awk '{print $3}' | sed -e 's/"//g') -I tests/build/googletest-src/googletest/include
+          clang-tidy src/cpp_impl/*.cpp src/cpp_impl_boost/*.cpp tests/*.cpp -checks=perf\* -- -I src/cpp_impl -I src/cpp_impl_boost -I /opt/boost/include -I $(python -m sysconfig | egrep "\\bINCLUDEPY" | awk '{print $3}' | sed -e 's/"//g') -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
 
       - name: Make documents for Python code in the Python package
         continue-on-error: true
@@ -191,4 +191,5 @@ jobs:
         continue-on-error: true
         working-directory: ./r_proj/rCppSample
         run: |
-          clang-tidy src/*.cpp tests/*.cpp -checks=perf\*  -- -I src -I "${R_HOME}/include" -I "${R_HOME}/site-library/Rcpp/include" -I tests/build/googletest-src/googletest/include
+          echo "-I $(find /usr -name R.h | head -1 | xargs dirname)" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/Rcpp/include"), sep="", collapse=" "))')" > _r_includes
+          clang-tidy src/*.cpp tests/*.cpp -checks=perf\* -- -I src $(cat _r_includes) -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"

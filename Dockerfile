@@ -73,7 +73,8 @@ RUN lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFil
 RUN genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 WORKDIR "${R_PROJECT_DIR}"
 
-RUN clang-tidy src/*.cpp tests/*.cpp -checks=perf\*  -- -I src -I "${R_HOME}/include" -I "${R_HOME}/site-library/Rcpp/include" -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
+RUN echo "-I $(find /usr -name R.h | head -1 | xargs dirname)" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/Rcpp/include"), sep="", collapse=" "))')" > _r_includes
+RUN clang-tidy src/*.cpp tests/*.cpp -checks=perf\* -- -I src $(cat _r_includes) -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
 
 ## Testing a Python package
 WORKDIR "${PYTHON_PROJECT_DIR}"
