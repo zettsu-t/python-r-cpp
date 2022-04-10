@@ -1,6 +1,7 @@
 FROM rocker/tidyverse
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install -y build-essential cmake curl doxygen git git-core gnupg2 graphviz language-pack-ja lcov less make pandoc pandoc-citeproc patch python3-dev python3-numpy python3-sphinx software-properties-common unzip wget
+RUN apt-get install -y clang clang-format clang-tidy
 
 RUN curl -O https://bootstrap.pypa.io/get-pip.py
 RUN python3.8 get-pip.py
@@ -72,6 +73,8 @@ RUN lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFil
 RUN genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 WORKDIR "${R_PROJECT_DIR}"
 
+RUN clang-tidy src/*.cpp tests/*.cpp -checks=perf\*  -- -I src -I /usr/local/lib/R/include -I /usr/local/lib/R/site-library/Rcpp/include -I tests/build/googletest-src/googletest/include
+
 ## Testing a Python package
 WORKDIR "${PYTHON_PROJECT_DIR}"
 RUN python3.8 setup.py bdist_wheel
@@ -98,6 +101,8 @@ RUN lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFil
 RUN genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 WORKDIR "${PYTHON_PROJECT_DIR}"
 
+RUN clang-tidy src/cpp_impl/*.cpp src/cpp_impl_boost/*.cpp tests/*.cpp -checks=perf\* -- -I src/cpp_impl -I src/cpp_impl_boost -I /opt/boost/include -I $(python -m sysconfig | egrep "\\bINCLUDEPY" | awk '{print $3}' | sed -e 's/"//g') -I tests/build/googletest-src/googletest/include
+
 RUN sphinx-quickstart -q -p py_cpp_sample -a "Author's name"
 RUN patch < patch/conf.py.diff
 RUN patch < patch/index.rst.diff
@@ -109,7 +114,7 @@ RUN doxygen -g
 
 RUN patch < ../patch/Doxyfile.diff
 RUN doxygen
-WORKDIR  ..
+WORKDIR  "${PROJECTS_TOP_DIR}"
 
 ## Wait to login for debugging
 ## CMD tail -f /dev/null

@@ -1,6 +1,7 @@
 FROM ubuntu:focal
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install -y build-essential cmake curl doxygen git git-core graphviz language-pack-ja lcov less make pandoc pandoc-citeproc patch python3-dev python3-numpy python3-sphinx unzip wget
+RUN apt-get install -y clang clang-format clang-tidy
 
 RUN curl -O https://bootstrap.pypa.io/get-pip.py
 RUN python3.8 get-pip.py

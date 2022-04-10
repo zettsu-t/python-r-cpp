@@ -90,6 +90,19 @@ genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 cd ../../../..
 ```
 
+We can format C++ code pretty with clang-format.
+
+```
+find . -maxdepth 3 -name "*.[c|h]pp" -print0 | xargs --null -I{} sh -c 'clang-format -style="{IndentWidth: 4}" $1 > $1.new' -- {}
+find . -maxdepth 3 -name "*.[c|h]pp" -print0 | xargs --null -I{} sh -c 'diff --unified=0 $1 $1.new' -- {}
+```
+
+We can use clang-tidy to improve C++ code. Note that we have to run the command below after installing Google Test.
+
+```
+clang-tidy src/cpp_impl/*.cpp src/cpp_impl_boost/*.cpp tests/*.cpp -checks=perf\* -- -I src/cpp_impl -I src/cpp_impl_boost -I /opt/boost/include -I $(python -m sysconfig | egrep "\\bINCLUDEPY" | awk '{print $3}' | sed -e 's/"//g') -I tests/build/googletest-src/googletest/include
+```
+
 ## Make documents
 
 ### Python code

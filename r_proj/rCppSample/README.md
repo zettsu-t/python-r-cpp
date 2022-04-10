@@ -61,6 +61,19 @@ mkdir -p docs
 cd docs
 ```
 
+We can format C++ code pretty with clang-format.
+
+```
+find . -maxdepth 2 -name "*.[c|h]pp" ! -name RcppExports.cpp -print0 | xargs --null -I{} sh -c 'clang-format -style="{IndentWidth: 4}" $1 > $1.new' -- {}
+find . -maxdepth 2 -name "*.[c|h]pp" ! -name RcppExports.cpp -print0 | xargs --null -I{} sh -c 'diff --unified=0 $1 $1.new' -- {}
+```
+
+We can use clang-tidy to improve C++ code. Note that we have to run the command below after installing Google Test.
+
+```
+clang-tidy src/*.cpp tests/*.cpp -checks=perf\*  -- -I src -I /usr/local/lib/R/include -I /usr/local/lib/R/site-library/Rcpp/include -I tests/build/googletest-src/googletest/include
+```
+
 ## Make documents
 
 ``` r
