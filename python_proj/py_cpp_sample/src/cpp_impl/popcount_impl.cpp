@@ -64,12 +64,3 @@ popcount_cpp_uint64(pybind11::array_t<uint64_t, pybind11::array::c_style |
     return popcount_cpp_impl<uint64_t>(xs);
 }
 } // namespace py_cpp_sample
-
-/*
-Local Variables:
-mode: c++
-coding: utf-8-unix
-tab-width: nil
-c-file-style: "stroustrup"
-End:
-*/

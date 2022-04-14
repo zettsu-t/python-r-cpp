@@ -57,6 +57,12 @@ covr::report(coverage_report, "./coverage_report.html")
 lintr::lint_package()
 ```
 
+We can format R code pretty with the styler package.
+
+```r
+styler::style_pkg()
+```
+
 ### C++ code
 
 ```bash
@@ -76,8 +82,8 @@ cd docs
 We can format C++ code pretty with clang-format.
 
 ```
-find . -maxdepth 2 -name "*.[c|h]pp" ! -name RcppExports.cpp -print0 | xargs --null -I{} sh -c 'clang-format -style="{IndentWidth: 4}" $1 > $1.new' -- {}
-find . -maxdepth 2 -name "*.[c|h]pp" ! -name RcppExports.cpp -print0 | xargs --null -I{} sh -c 'diff --unified=0 $1 $1.new' -- {}
+find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I{} sh -c 'clang-format -style="{IndentWidth: 4}" "$1" > "$1".new' -- {}
+find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I{} sh -c 'diff --unified=0 "$1" "$1".new' -- {}
 ```
 
 We can use clang-tidy to improve C++ code. Note that we have to run the command below after installing Google Test.

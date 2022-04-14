@@ -7,7 +7,7 @@ class TestPopcount : public ::testing::Test {};
 
 TEST_F(TestPopcount, Size) {
     // Empty arrays are acceptable
-    for (size_t array_size = 0; array_size < 3; ++array_size) {
+    for (size_t array_size{0}; array_size < 3; ++array_size) {
         const rCppSample::RawVector arg(array_size, 0);
         const auto actual = popcount_cpp_raw(arg);
         ASSERT_EQ(arg.size(), actual.size());
@@ -90,7 +90,7 @@ TEST_F(TestPopcount, FullRawValues) {
         low_value &= mask_value;
         auto element = static_cast<Element>(low_value);
         arg.at(index) = element;
-        for (size_t bit_index = 0; bit_index < (sizeof(Element) * 8);
+        for (size_t bit_index{0}; bit_index < (sizeof(Element) * 8);
              ++bit_index) {
             decltype(low_value) mask = 1;
             mask <<= bit_index;
@@ -109,12 +109,3 @@ int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();
 }
-
-/*
-Local Variables:
-mode: c++
-coding: utf-8-unix
-tab-width: nil
-c-file-style: "stroustrup"
-End:
-*/

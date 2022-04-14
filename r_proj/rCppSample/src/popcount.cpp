@@ -58,12 +58,3 @@ Rcpp::IntegerVector popcount_cpp_integer(const Rcpp::IntegerVector &xs)
 {
     return popcount_cpp_impl(xs);
 }
-
-/*
-Local Variables:
-mode: c++
-coding: utf-8-unix
-tab-width: nil
-c-file-style: "stroustrup"
-End:
-*/

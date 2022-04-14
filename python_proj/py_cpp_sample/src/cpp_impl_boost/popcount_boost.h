@@ -20,12 +20,3 @@ popcount_cpp_boost(const boost::python::numpy::ndarray &xs);
 } // namespace py_cpp_sample
 
 #endif // CPP_IMPL_BOOST_POPCOUNT_BOOST_H
-
-/*
-Local Variables:
-mode: c++
-coding: utf-8-unix
-tab-width: nil
-c-file-style: "stroustrup"
-End:
-*/

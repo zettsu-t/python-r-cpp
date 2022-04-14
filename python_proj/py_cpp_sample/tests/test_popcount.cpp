@@ -143,7 +143,7 @@ std::vector<Count> setup_popcount(SizeType array_size, SizeType value_offset,
         auto element = static_cast<Element>(low_value);
         ptr[index] = element;
 
-        for (size_t bit_index = 0; bit_index < (sizeof(low_value) * 8);
+        for (size_t bit_index{0}; bit_index < (sizeof(low_value) * 8);
              ++bit_index) {
             decltype(low_value) mask = 1;
             mask <<= bit_index;
@@ -152,6 +152,14 @@ std::vector<Count> setup_popcount(SizeType array_size, SizeType value_offset,
     }
 
     return expected;
+}
+
+template <typename ArrayType> void clean_1d_array(ArrayType &arg) {
+    auto shape = arg.shape(0);
+    for (decltype(shape) index{0}; index < shape; ++index) {
+        *arg.mutable_data(index) = 0;
+    }
+    return;
 }
 } // namespace
 
@@ -164,11 +172,11 @@ TYPED_TEST_SUITE(TestPopcountTyped, PopcountTypes);
 
 TEST_F(TestPopcountPybind11, InvalidDimension) {
     PyUint8Array arg({2, 3});
-    const auto shape0 = arg.shape(0);
-    const auto shape1 = arg.shape(1);
+    auto shape0 = arg.shape(0);
+    auto shape1 = arg.shape(1);
 
-    for (auto index0 = 0; index0 < shape0; ++index0) {
-        for (auto index1 = 0; index1 < shape1; ++index1) {
+    for (decltype(shape0) index0{0}; index0 < shape0; ++index0) {
+        for (decltype(shape1) index1{0}; index1 < shape1; ++index1) {
             *arg.mutable_data(index0, index1) = 0;
         }
     }
@@ -197,8 +205,9 @@ TYPED_TEST(TestPopcountTyped, ArraySizePybind11) {
                                                    pybind11::array::forcecast>;
 
     // Empty arrays are acceptable
-    for (PyBindSize array_size = 0; array_size < 3; ++array_size) {
+    for (PyBindSize array_size{0}; array_size < 3; ++array_size) {
         PyArray arg({array_size});
+        clean_1d_array(arg);
         const auto buffer_arg = arg.request();
 
         ASSERT_EQ(1, buffer_arg.ndim);
@@ -228,7 +237,7 @@ TYPED_TEST(TestPopcountTyped, ArraySizeBoost) {
     using Element = TypeParam;
 
     // Empty arrays are acceptable
-    for (size_t array_size = 0; array_size < 3; ++array_size) {
+    for (size_t array_size{0}; array_size < 3; ++array_size) {
         BoostArrayShape shape = boost::python::make_tuple(array_size);
         BoostDataType data_type = create_numpy_data_type_boost<Element>();
         auto arg = boost::python::numpy::zeros(shape, data_type);
@@ -256,6 +265,7 @@ TEST_F(TestPopcountPybind11, ValuesUint8) {
     const auto arg_array_size = static_cast<PyBindSize>(array_size);
     PyUint8Array arg({arg_array_size});
     ASSERT_TRUE(check_numpy_array_type_pybind11<Element>(arg, array_size));
+    clean_1d_array(arg);
 
     for (decltype(array_size) index{0}; index < array_size; ++index) {
         *arg.mutable_data(index) = Input_Uint8.at(index);
@@ -301,6 +311,7 @@ TEST_F(TestPopcountPybind11, ValuesUint64) {
     const auto arg_array_size = static_cast<PyBindSize>(array_size);
     PyUint64Array arg({arg_array_size});
     ASSERT_TRUE(check_numpy_array_type_pybind11<Element>(arg, array_size));
+    clean_1d_array(arg);
 
     for (decltype(array_size) index{0}; index < array_size; ++index) {
         *arg.mutable_data(index) = Input_Uint64.at(index);
@@ -347,6 +358,7 @@ TEST_F(TestPopcountPybind11, FullValuesUint8) {
 
     PyUint8Array arg({arg_array_size});
     ASSERT_TRUE(check_numpy_array_type_pybind11<Element>(arg, array_size));
+    clean_1d_array(arg);
 
     const auto buffer = arg.request();
     auto arg_values = static_cast<Element *>(buffer.ptr);
@@ -397,6 +409,7 @@ TEST_F(TestPopcountPybind11, LargeUint64) {
 
     PyUint64Array arg({arg_array_size});
     ASSERT_TRUE(check_numpy_array_type_pybind11<Element>(arg, array_size));
+    clean_1d_array(arg);
 
     const auto buffer = arg.request();
     auto arg_values = static_cast<Element *>(buffer.ptr);
@@ -441,10 +454,11 @@ TEST_F(TestPopcountPybind11, BitsUint64) {
     Element value = 0;
     Element mask = 1;
 
-    for (size_t count = 0; count < (sizeof(value) * 8 + 1); ++count) {
+    for (size_t count{0}; count < (sizeof(value) * 8 + 1); ++count) {
         constexpr PyBindSize array_size = 1;
         PyUint64Array arg({array_size});
         ASSERT_TRUE(check_numpy_array_type_pybind11<Element>(arg, array_size));
+        clean_1d_array(arg);
 
         *arg.mutable_data(0) = value;
         const auto actual = py_cpp_sample::popcount_cpp_uint64(arg);
@@ -462,7 +476,7 @@ TEST_F(TestPopcountBoost, BitsUint64) {
     Element mask = 1;
     constexpr size_t array_size = 1;
 
-    for (size_t count = 0; count < (sizeof(value) * 8 + 1); ++count) {
+    for (size_t count{0}; count < (sizeof(value) * 8 + 1); ++count) {
         BoostArrayShape shape = boost::python::make_tuple(array_size);
         BoostDataType data_type = create_numpy_data_type_boost<Element>();
         auto arg = boost::python::numpy::zeros(shape, data_type);
@@ -487,12 +501,3 @@ int main(int argc, char *argv[]) {
     boost::python::numpy::initialize();
     return RUN_ALL_TESTS();
 }
-
-/*
-Local Variables:
-mode: c++
-coding: utf-8-unix
-tab-width: nil
-c-file-style: "stroustrup"
-End:
-*/

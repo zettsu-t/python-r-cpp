@@ -39,13 +39,13 @@ popcount_cpp_impl_boost(const boost::python::numpy::ndarray &xs) {
                           std::numeric_limits<PopcountArg>::max(),
                       "Avoid narrowing casting");
 #ifndef __clang__
-      static_assert(
-          std::is_same<PopcountArg,
-                       boost::function_traits<decltype(
-                           __builtin_popcountll)>::arg1_type>::value,
-          "Pass the correct argument to __builtin_popcountll");
+        static_assert(
+            std::is_same<PopcountArg,
+                         boost::function_traits<decltype(
+                             __builtin_popcountll)>::arg1_type>::value,
+            "Pass the correct argument to __builtin_popcountll");
 #endif
-      const auto count = static_cast<Count>(__builtin_popcountll(value));
+        const auto count = static_cast<Count>(__builtin_popcountll(value));
 #else
 #error Use an alternative of __builtin_popcountll
 #endif
@@ -70,12 +70,3 @@ popcount_cpp_boost(const boost::python::numpy::ndarray &xs) {
     throw std::runtime_error("Unsupported array element types");
 }
 } // namespace py_cpp_sample
-
-/*
-Local Variables:
-mode: c++
-coding: utf-8-unix
-tab-width: nil
-c-file-style: "stroustrup"
-End:
-*/

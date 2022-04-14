@@ -48,12 +48,3 @@ extern Rcpp::IntegerVector popcount_cpp_integer(const Rcpp::IntegerVector &xs);
 #endif // UNIT_TEST_CPP
 
 #endif // SRC_POPCOUNT_H
-
-/*
-Local Variables:
-mode: c++
-coding: utf-8-unix
-tab-width: nil
-c-file-style: "stroustrup"
-End:
-*/

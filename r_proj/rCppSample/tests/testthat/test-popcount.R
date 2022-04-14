@@ -2,7 +2,7 @@ are_equal_with_nas <- function(x, y) {
   (NROW(x) == NROW(y)) && all(purrr::map2_lgl(x, y, `%in%`))
 }
 
-test_that("empty", {
+test_that("Empty", {
   arg_raw <- raw()
   arg_integer <- integer()
   expect_true(is.raw(arg_raw))
@@ -11,6 +11,17 @@ test_that("empty", {
   expect_equal(NROW(rCppSample::popcount(arg_raw)), 0)
   expect_equal(NROW(rCppSample::popcount(arg_integer)), 0)
   expect_equal(NROW(rCppSample::popcount(c())), 0)
+})
+
+test_that("No arguments", {
+  expect_error(rCppSample::popcount())
+})
+
+test_that("Named arguments", {
+  expected <- 1
+  actual <- rCppSample::popcount(xs = c(2))
+  expect_equal(NROW(actual), NROW(expected))
+  expect_true(all(actual == expected))
 })
 
 test_that("NULL and other non-integers", {

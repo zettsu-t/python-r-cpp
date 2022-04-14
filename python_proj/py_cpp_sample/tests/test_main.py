@@ -185,6 +185,14 @@ def test_empty_array(target_func, dtype):
     assert actual.shape == (0,)
 
 
+def test_named_arguments():
+    """Named Arguments"""
+    expected = np.array([1], dtype=np.uint8)
+    arg = np.array([2], dtype=np.uint8)
+    assert np.all(popcount(xs=arg) == expected)
+    assert np.all(popcount_boost(xs=arg) == expected)
+
+
 def test_invalid_type():
     """Not an np.ndarray"""
     with pytest.raises(RuntimeError, match=EXPECTED_ERROR_SCALAR_MSG):
@@ -192,6 +200,14 @@ def test_invalid_type():
 
     with pytest.raises(ValueError, match=EXPECTED_ERROR_COMMON_MSG):
         popcount_boost(1)
+
+    with pytest.raises(TypeError):
+        # pylint: disable = no-value-for-parameter
+        popcount()
+
+    with pytest.raises(TypeError):
+        # pylint: disable = no-value-for-parameter
+        popcount_boost()
 
 
 def test_convertible_element_type():
