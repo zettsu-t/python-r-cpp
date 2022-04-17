@@ -35,8 +35,8 @@ jobs:
         working-directory: ./r_proj/rCppSample
         run: |
           sudo apt-get install -y unifdef
-          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" -print0 | xargs --null -I '{}' sh -c 'unifdef -U UNIT_TEST_CPP "$1" > "$1".undef' -- '{}'
-          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" -print0 | xargs --null -I '{}' sh -c 'cp "$1".undef "$1"' -- '{}'
+          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" -print0 | xargs --null -I {} bash -c 'unifdef -U UNIT_TEST_CPP {} > {}.undef'
+          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" -print0 | xargs --null -I {} bash -c 'cp {}.undef {}'
           find . -maxdepth 2 -name "*.cpp" -o -name "*.h" | grep UNIT_TEST_CPP
 
       - name: Install Linux package dependencies
