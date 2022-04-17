@@ -17,9 +17,6 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_HOME: /opt/R/4.1.2/lib/R
-      LANG: ja_JP.UTF-8
-      LANGUAGE: ja_JP:ja
-      LC_ALL: ja_JP.UTF-8
     steps:
       - uses: actions/checkout@v2
       - uses: r-lib/actions/setup-pandoc@v1
@@ -35,8 +32,9 @@ jobs:
         working-directory: ./r_proj/rCppSample
         run: |
           sudo apt-get install -y unifdef
-          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" | xargs -L 1 -I {} bash -c 'unifdef -U UNIT_TEST_CPP {} > {}.undef'
-          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" | xargs -L 1 -I {} bash -c 'cp {}.undef {}'
+          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" | xargs -L 1 -I '{}' bash -c 'echo UNIT_TEST_CPP {} {}.undef'
+          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" | xargs -L 1 -I '{}' bash -c 'unifdef -U UNIT_TEST_CPP {} > {}.undef'
+          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" | xargs -L 1 -I '{}' bash -c 'cp {}.undef {}'
           find . -maxdepth 2 -name "*.cpp" -o -name "*.h" | grep UNIT_TEST_CPP
 
       - name: Install Linux package dependencies
