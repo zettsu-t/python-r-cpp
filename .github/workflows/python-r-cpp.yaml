@@ -31,6 +31,13 @@ jobs:
           python-version: '3.8'
           architecture: 'x64'
 
+      - name: Remove UNIT_TEST_CPP blocks
+        working-directory: ./r_proj/rCppSample
+        run: |
+          find . -maxdepth 2 -name "*.cpp" -o -name "*.h"
+          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" -print0 | xargs --null -I '{}' sh -c 'unifdef -U UNIT_TEST_CPP "$1" > "$1".undef' -- '{}'
+          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" -print0 | xargs --null -I '{}' sh -c 'cp "$1".undef "$1"' -- '{}'
+
       - name: Install Linux package dependencies
         run: |
           sudo apt-get install -y build-essential cmake curl doxygen git git-core gnupg2 graphviz language-pack-ja lcov less make pandoc pandoc-citeproc patch python3-dev python3-numpy python3-sphinx qpdf software-properties-common unifdef unzip wget zlib1g-dev libcairo2-dev libcurl4-openssl-dev libgit2-dev libicu-dev libpng-dev libpython3-dev libssl-dev libtbb2 libxml2-dev libxt6 libxt-dev
@@ -195,13 +202,6 @@ jobs:
         run: |
           echo "-I $(find /usr -name R.h | head -1 | xargs dirname)" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/Rcpp/include"), sep="", collapse=" "))')" > _r_includes
           clang-tidy src/*.cpp tests/*.cpp -checks=perf\* -- -I src $(cat _r_includes) -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
-
-      - name: Remove UNIT_TEST_CPP blocks
-        continue-on-error: true
-        working-directory: ./r_proj/rCppSample
-        run: |
-          find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'unifdef -U UNIT_TEST_CPP "$1" > "$1".undef' -- '{}'
-          find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'cp "$1".undef "$1"' -- '{}'
 
       - name: Testing C++ code in the R package without UNIT_TEST_CPP
         continue-on-error: true
