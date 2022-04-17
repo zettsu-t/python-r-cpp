@@ -1,6 +1,6 @@
 FROM rocker/tidyverse
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y build-essential cmake curl doxygen git git-core gnupg2 graphviz language-pack-ja lcov less make pandoc pandoc-citeproc patch python3-dev python3-numpy python3-sphinx software-properties-common unzip wget
+RUN apt-get update && apt-get install -y build-essential cmake curl doxygen git git-core gnupg2 graphviz language-pack-ja lcov less make pandoc pandoc-citeproc patch python3-dev python3-numpy python3-sphinx software-properties-common unifdef unzip wget
 RUN apt-get install -y clang clang-format clang-tidy
 
 RUN curl -O https://bootstrap.pypa.io/get-pip.py
@@ -50,6 +50,10 @@ RUN mkdir -p "${R_PROJECT_DIR}"
 COPY python_proj/ "${PROJECTS_TOP_DIR}/python_proj/"
 COPY r_proj/ "${PROJECTS_TOP_DIR}/r_proj/"
 
+## Undef macros
+RUN find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'unifdef -U UNIT_TEST_CPP "$1" > "$1".undef' -- '{}'
+RUN find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'cp "$1".undef "$1"' -- '{}'
+
 ## cloc
 RUN Rscript -e "cloc::cloc('${PYTHON_PROJECT_DIR}')"
 RUN Rscript -e "cloc::cloc('${R_PROJECT_DIR}')"
@@ -62,6 +66,7 @@ WORKDIR "${R_PROJECT_DIR}"
 RUN Rscript "${R_PROJECT_DIR}/../tests/r_tests.R"
 RUN find src -name "*.so" | xargs objdump -d -M intel | grep -i popcnt
 
+RUN rm -rf "${R_PROJECT_DIR}/tests/build"
 RUN mkdir -p "${R_PROJECT_DIR}/tests/build"
 WORKDIR "${R_PROJECT_DIR}/tests/build"
 RUN cmake ..
@@ -91,6 +96,7 @@ RUN export PYTHONPATH=src; pytest --cov=src --cov=tests --cov-report=html tests;
 RUN coverage report -m
 RUN coverage html
 
+RUN rm -rf "${PYTHON_PROJECT_DIR}/tests/build"
 RUN mkdir -p "${PYTHON_PROJECT_DIR}/tests/build"
 WORKDIR "${PYTHON_PROJECT_DIR}/tests/build"
 RUN cmake ..

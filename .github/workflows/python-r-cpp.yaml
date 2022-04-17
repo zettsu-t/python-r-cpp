@@ -16,6 +16,7 @@ jobs:
     runs-on: ubuntu-20.04
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      R_HOME: /opt/R/4.1.2/lib/R
       LANG: ja_JP.UTF-8
       LANGUAGE: ja_JP:ja
       LC_ALL: ja_JP.UTF-8
@@ -177,6 +178,7 @@ jobs:
         run: |
           cmake ..
           make
+          echo "library(rCppSample)" | ./test_popcount --output-on-failure
           make test
 
       - name: Report coverage of C++ code in the R package
@@ -193,3 +195,19 @@ jobs:
         run: |
           echo "-I $(find /usr -name R.h | head -1 | xargs dirname)" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/Rcpp/include"), sep="", collapse=" "))')" > _r_includes
           clang-tidy src/*.cpp tests/*.cpp -checks=perf\* -- -I src $(cat _r_includes) -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
+
+      - name: Remove UNIT_TEST_CPP blocks
+        continue-on-error: true
+        working-directory: ./r_proj/rCppSample
+        run: |
+          find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'unifdef -U UNIT_TEST_CPP "$1" > "$1".undef' -- '{}'
+          find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'cp "$1".undef "$1"' -- '{}'
+
+      - name: Testing C++ code in the R package without UNIT_TEST_CPP
+        continue-on-error: true
+        working-directory: ./r_proj/rCppSample/tests/build
+        run: |
+          cmake ..
+          make
+          echo "library(rCppSample)" | ./test_popcount --output-on-failure
+          make test

@@ -78,8 +78,8 @@ exit
 We can format Python code pretty with autopep8.
 
 ```
-find . -maxdepth 3 -name "*.py" -print0 | xargs --null -I{} sh -c 'autopep8 "$1" > "$1".new' -- {}
-find . -maxdepth 3 -name "*.py" -print0 | xargs --null -I{} sh -c 'diff --unified=0 "$1" "$1".new' -- {}
+find . -maxdepth 3 -name "*.py" -print0 | xargs --null -I '{}' sh -c 'autopep8 "$1" > "$1".new' -- '{}'
+find . -maxdepth 3 -name "*.py" -print0 | xargs --null -I '{}' sh -c 'diff --unified=0 "$1" "$1".new' -- '{}'
 ```
 
 ### C++ code
@@ -100,8 +100,8 @@ cd ../../../..
 We can format C++ code pretty with clang-format.
 
 ```
-find . -maxdepth 3 \( -name "*.cpp" -o -name "*.h" \) -print0 | xargs --null -I{} sh -c 'clang-format -style="{IndentWidth: 4}" "$1" > "$1".new' -- {}
-find . -maxdepth 3 \( -name "*.cpp" -o -name "*.h" \) -print0 | xargs --null -I{} sh -c 'diff --unified=0 "$1" "$1".new' -- {}
+find . -maxdepth 3 \( -name "*.cpp" -o -name "*.h" \) -print0 | xargs --null -I '{}' sh -c 'clang-format -style="{IndentWidth: 4}" "$1" > "$1".new' -- '{}'
+find . -maxdepth 3 \( -name "*.cpp" -o -name "*.h" \) -print0 | xargs --null -I '{}' sh -c 'diff --unified=0 "$1" "$1".new' -- '{}'
 ```
 
 We can use clang-tidy to improve C++ code. Note that we have to run the command below after installing Google Test.

@@ -79,11 +79,20 @@ mkdir -p docs
 cd docs
 ```
 
+C++ code in this package switches data types to export between this package implementation and unit tests via the macro UNIT_TEST_CPP. Launching R in C++ unit tests can avoid it. The unifdef command removes UNIT_TEST_CPP blocks.
+
+```
+find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'unifdef -U UNIT_TEST_CPP "$1" > "$1".undef' -- '{}'
+find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'cp "$1" "$1".def' -- '{}'
+find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'cp "$1".undef "$1"' -- '{}'
+find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null grep UNIT_TEST_CPP
+```
+
 We can format C++ code pretty with clang-format.
 
 ```
-find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I{} sh -c 'clang-format -style="{IndentWidth: 4}" "$1" > "$1".new' -- {}
-find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I{} sh -c 'diff --unified=0 "$1" "$1".new' -- {}
+find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'clang-format -style="{IndentWidth: 4}" "$1" > "$1".new' -- '{}'
+find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'diff --unified=0 "$1" "$1".new' -- '{}'
 ```
 
 We can use clang-tidy to improve C++ code. Note that we have to run the command below after installing Google Test.
