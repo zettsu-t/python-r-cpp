@@ -28,15 +28,6 @@ jobs:
           python-version: '3.8'
           architecture: 'x64'
 
-      - name: Remove UNIT_TEST_CPP blocks
-        working-directory: ./r_proj/rCppSample
-        run: |
-          sudo apt-get install -y unifdef
-          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" | xargs -L 1 -I '{}' bash -c 'echo UNIT_TEST_CPP {} {}.undef'
-          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" | xargs -L 1 -I '{}' bash -c 'unifdef -U UNIT_TEST_CPP {} > {}.undef'
-          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" | xargs -L 1 -I '{}' bash -c 'cp {}.undef {}'
-          find . -maxdepth 2 -name "*.cpp" -o -name "*.h" | grep UNIT_TEST_CPP
-
       - name: Install Linux package dependencies
         run: |
           sudo apt-get install -y build-essential cmake curl doxygen git git-core gnupg2 graphviz language-pack-ja lcov less make pandoc pandoc-citeproc patch python3-dev python3-numpy python3-sphinx qpdf software-properties-common unifdef unzip wget zlib1g-dev libcairo2-dev libcurl4-openssl-dev libgit2-dev libicu-dev libpng-dev libpython3-dev libssl-dev libtbb2 libxml2-dev libxt6 libxt-dev
@@ -65,11 +56,6 @@ jobs:
           sudo pip install autopep8 check-manifest coverage find_libpython flake8 mypy numpy pep8 pipenv pybind11 pybind11-global pylint pytest pytest-benchmark pytest-cov py_pkg sphinx sphinx_rtd_theme types-requests wheel
           sudo mkdir -p /usr/lib/python3.8/site-packages
           sudo chmod ugo+w /usr/lib/python3.8/site-packages
-
-      - name: Setup a language pack
-        run: |
-          sudo update-locale LANG=ja_JP.UTF-8
-          sudo locale-gen ja_JP.UTF-8
 
       - name: Install R package dependencies
         continue-on-error: true
@@ -201,12 +187,3 @@ jobs:
         run: |
           echo "-I $(find /usr -name R.h | head -1 | xargs dirname)" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/Rcpp/include"), sep="", collapse=" "))')" > _r_includes
           clang-tidy src/*.cpp tests/*.cpp -checks=perf\* -- -I src $(cat _r_includes) -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
-
-      - name: Testing C++ code in the R package without UNIT_TEST_CPP
-        continue-on-error: true
-        working-directory: ./r_proj/rCppSample/tests/build
-        run: |
-          cmake ..
-          make
-          echo "library(rCppSample)" | ./test_popcount --output-on-failure
-          make test
