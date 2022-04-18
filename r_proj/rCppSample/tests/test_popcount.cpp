@@ -167,7 +167,7 @@ TEST_F(TestPopcount, RawValues) {
     const rCppSample::RawVector arg{0, 1, 2, 3, 6, 7, 254, 255};
     const rCppSample::IntegerVector expected{0, 1, 1, 2, 2, 3, 7, 8};
     const auto actual = popcount_cpp_raw(arg);
-    are_equal(expected, actual);
+    EXPECT_TRUE(are_equal(expected, actual));
 }
 
 TEST_F(TestPopcount, IntegerValues) {
@@ -178,7 +178,7 @@ TEST_F(TestPopcount, IntegerValues) {
     const rCppSample::IntegerVector expected{0, 1,  7,  8,  1, 16,
                                              1, 30, 31, 15, 16};
     const auto actual = popcount_cpp_integer(arg);
-    are_equal(expected, actual);
+    EXPECT_TRUE(are_equal(expected, actual));
 }
 
 TEST_F(TestPopcount, NAs) {
@@ -188,7 +188,7 @@ TEST_F(TestPopcount, NAs) {
     const rCppSample::IntegerVector expected{1, rCppSample::NaInteger, 3,
                                              rCppSample::NaInteger, 5};
     const auto actual = popcount_cpp_integer(arg);
-    are_equal(expected, actual);
+    EXPECT_TRUE(are_equal(expected, actual));
 }
 
 TEST_F(TestPopcount, NegativeIntegerValues) {
@@ -199,7 +199,7 @@ TEST_F(TestPopcount, NegativeIntegerValues) {
                                         -2147483647};
     const rCppSample::IntegerVector expected{32, 31, 20, 16, 2};
     const auto actual = popcount_cpp_integer(arg);
-    are_equal(expected, actual);
+    EXPECT_TRUE(are_equal(expected, actual));
 }
 
 TEST_F(TestPopcount, FullRawValues) {
@@ -228,7 +228,7 @@ TEST_F(TestPopcount, FullRawValues) {
 
     const auto actual = popcount_cpp_raw(arg);
     ASSERT_EQ(array_size, actual.size());
-    are_equal(expected, actual);
+    EXPECT_TRUE(are_equal(expected, actual));
 }
 
 namespace {
