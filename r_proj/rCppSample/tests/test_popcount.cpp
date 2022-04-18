@@ -9,6 +9,13 @@
 #include <Rinterface.h>
 
 namespace {
+template <typename T, typename U>
+bool are_equal(const T &expected, const U &actual) {
+    // Rcpp::Vector has no == operators.
+    return ((expected.size() == actual.size()) &&
+            std::equal(expected.begin(), expected.end(), actual.begin(), actual.end()));
+}
+
 class RcodeFeeder {
   public:
     explicit RcodeFeeder(const std::string &r_code) : r_code_(r_code) {}
@@ -160,12 +167,7 @@ TEST_F(TestPopcount, RawValues) {
     const rCppSample::RawVector arg{0, 1, 2, 3, 6, 7, 254, 255};
     const rCppSample::IntegerVector expected{0, 1, 1, 2, 2, 3, 7, 8};
     const auto actual = popcount_cpp_raw(arg);
-    ASSERT_EQ(expected.size(), actual.size());
-
-    auto size = actual.size();
-    for (decltype(size) i{0}; i < size; ++i) {
-        EXPECT_EQ(expected.at(i), actual.at(i));
-    }
+    are_equal(expected, actual);
 }
 
 TEST_F(TestPopcount, IntegerValues) {
@@ -176,12 +178,7 @@ TEST_F(TestPopcount, IntegerValues) {
     const rCppSample::IntegerVector expected{0, 1,  7,  8,  1, 16,
                                              1, 30, 31, 15, 16};
     const auto actual = popcount_cpp_integer(arg);
-    ASSERT_EQ(expected.size(), actual.size());
-
-    auto size = actual.size();
-    for (decltype(size) i{0}; i < size; ++i) {
-        EXPECT_EQ(expected.at(i), actual.at(i));
-    }
+    are_equal(expected, actual);
 }
 
 TEST_F(TestPopcount, NAs) {
@@ -191,12 +188,7 @@ TEST_F(TestPopcount, NAs) {
     const rCppSample::IntegerVector expected{1, rCppSample::NaInteger, 3,
                                              rCppSample::NaInteger, 5};
     const auto actual = popcount_cpp_integer(arg);
-    ASSERT_EQ(expected.size(), actual.size());
-
-    auto size = actual.size();
-    for (decltype(size) i{0}; i < size; ++i) {
-        EXPECT_EQ(expected.at(i), actual.at(i));
-    }
+    are_equal(expected, actual);
 }
 
 TEST_F(TestPopcount, NegativeIntegerValues) {
@@ -207,12 +199,7 @@ TEST_F(TestPopcount, NegativeIntegerValues) {
                                         -2147483647};
     const rCppSample::IntegerVector expected{32, 31, 20, 16, 2};
     const auto actual = popcount_cpp_integer(arg);
-    ASSERT_EQ(expected.size(), actual.size());
-
-    auto size = actual.size();
-    for (decltype(size) i{0}; i < size; ++i) {
-        EXPECT_EQ(expected.at(i), actual.at(i));
-    }
+    are_equal(expected, actual);
 }
 
 TEST_F(TestPopcount, FullRawValues) {
@@ -241,9 +228,7 @@ TEST_F(TestPopcount, FullRawValues) {
 
     const auto actual = popcount_cpp_raw(arg);
     ASSERT_EQ(array_size, actual.size());
-    for (decltype(array_size) i{0}; i < array_size; ++i) {
-        EXPECT_EQ(expected.at(i), actual.at(i));
-    }
+    are_equal(expected, actual);
 }
 
 namespace {

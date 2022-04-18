@@ -63,8 +63,6 @@ cd ~/work/rCppSample/tests/build/CMakeFiles/test_popcount.dir
 lcov -d . -c -o coverage.info
 lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info
 genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
-mkdir -p docs
-cd docs
 ```
 
 C++ code in this package switches data types to export between this
@@ -85,7 +83,7 @@ We can format C++ code pretty with clang-format.
 We can use clang-tidy to improve C++ code. Note that we have to run the
 command below after installing Google Test.
 
-    echo "-I $(find /usr -name R.h | head -1 | xargs dirname)" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/Rcpp/include"), sep="", collapse=" "))')" > _r_includes
+    echo "-I $(find /usr -name R.h | head -1 | xargs dirname)" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/Rcpp/include"), sep="", collapse=" "))')" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/testthat/include"), sep="", collapse=" "))')" > _r_includes
     clang-tidy src/*.cpp tests/*.cpp -checks=perf\* -- -I src $(cat _r_includes) -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
 
 ## Make documents

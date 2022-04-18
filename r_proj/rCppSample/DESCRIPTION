@@ -5,7 +5,9 @@ Version: 0.0.0.9000
 Authors@R: person('Zettsu', 'Tatsuya', email = 'zettsu.tatsuya@gmail.com', role = c('cre', 'aut'))
 Description: This is a sample package to use C++ in R.
 License: MIT + file LICENSE
-LinkingTo: Rcpp
+LinkingTo:
+    Rcpp,
+    testthat (>= 3.0.0)
 Imports:
     Rcpp
 Encoding: UTF-8
@@ -25,6 +27,7 @@ Suggests:
     knitr,
     markdown,
     rmarkdown,
-    kableExtra
+    kableExtra,
+    xml2
 Language: en-US
 RoxygenNote: 7.1.2
