@@ -13,7 +13,8 @@ template <typename T, typename U>
 bool are_equal(const T &expected, const U &actual) {
     // Rcpp::Vector has no == operators.
     return ((expected.size() == actual.size()) &&
-            std::equal(expected.begin(), expected.end(), actual.begin(), actual.end()));
+            std::equal(expected.begin(), expected.end(), actual.begin(),
+                       actual.end()));
 }
 
 class RcodeFeeder {
@@ -57,6 +58,26 @@ auto call_feed_rcode(RcodeFeeder &feeder, unsigned char (&buf)[N]) {
     return feeder.feed_r_code(buf, N);
 }
 } // namespace
+
+class TestHelper : public ::testing::Test {};
+
+TEST_F(TestHelper, AreEqual) {
+    using Numbers1 = std::vector<int>;
+    using Numbers2 = std::vector<long long>;
+    const Numbers1 empty1{};
+    const Numbers2 empty2{};
+    const Numbers1 one1{1};
+    const Numbers2 one2{2};
+    const Numbers1 many1a{2, 3, 5, 7};
+    const Numbers1 many1b{2, 3, 5, 7};
+    const Numbers2 many2{2, 3, 6, 18};
+    EXPECT_TRUE(are_equal(empty1, empty2));
+    EXPECT_TRUE(are_equal(one1, one1));
+    EXPECT_TRUE(are_equal(many1a, many1b));
+    EXPECT_FALSE(are_equal(one1, one2));
+    EXPECT_FALSE(are_equal(one1, empty1));
+    EXPECT_FALSE(are_equal(many1a, many2));
+}
 
 class TestFeedRcode : public ::testing::Test {};
 

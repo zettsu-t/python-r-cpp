@@ -15,6 +15,7 @@ LazyData: true
 Suggests:
     testthat (>= 3.0.0),
     spelling,
+    xml2,
     covr,
     devtools,
     DT,
@@ -27,7 +28,6 @@ Suggests:
     knitr,
     markdown,
     rmarkdown,
-    kableExtra,
-    xml2
+    kableExtra
 Language: en-US
 RoxygenNote: 7.1.2

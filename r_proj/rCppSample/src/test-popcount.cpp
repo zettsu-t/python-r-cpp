@@ -3,28 +3,48 @@
 #include <testthat.h>
 
 #define ASSERT_IS_EQUAL(x, y)                                                  \
-    expect_true((x) == (y));                                                   \
-    if ((x) != (y)) {                                                          \
-        return;                                                                \
-    };
+    do {                                                                       \
+        expect_true((x) == (y));                                               \
+        if ((x) != (y)) {                                                      \
+            return;                                                            \
+        }                                                                      \
+    } while (0)
 
 namespace {
 template <typename T, typename U>
 bool are_equal(const T &actual, const U &expected) {
+    // Rcpp::Vector has no == operators.
     return ((actual.size() == expected.size()) &&
-            std::equal(actual.begin(), actual.end(), expected.begin(), expected.end()));
+            std::equal(actual.begin(), actual.end(), expected.begin(),
+                       expected.end()));
 }
 } // namespace
 
-// Initialize a unit test context. This is similar to how you
-// might begin an R test file with 'context()', expect the
-// associated context should be wrapped in braced.
-context("PopcountCpp") {
+context("Helper") {
+    test_that("AssertIsEqual") {
+        ASSERT_IS_EQUAL(0, 0);
+        ASSERT_IS_EQUAL(1 + 4, 2 + 3);
+    }
 
-    // The format for specifying tests is similar to that of
-    // testthat's R functions. Use 'test_that()' to define a
-    // unit test, and use 'expect_true()' and 'expect_false()'
-    // to test the desired conditions.
+    test_that("AreEqual") {
+        using Numbers = rCppSample::IntegerVector;
+        const Numbers empty1{};
+        const Numbers empty2{};
+        const Numbers one1{1};
+        const Numbers one2{2};
+        const Numbers many1a{2, 3, 5, 7};
+        const Numbers many1b{2, 3, 5, 7};
+        const Numbers many2{2, 3, 6, 18};
+        expect_true(are_equal(empty1, empty2));
+        expect_true(are_equal(one1, one1));
+        expect_true(are_equal(many1a, many1b));
+        expect_false(are_equal(one1, one2));
+        expect_false(are_equal(one1, empty1));
+        expect_false(are_equal(many1a, many2));
+    }
+}
+
+context("PopcountCpp") {
     test_that("Size") {
         // Empty arrays are acceptable
         for (size_t array_size{0}; array_size < 3; ++array_size) {
@@ -100,6 +120,9 @@ context("PopcountCpp") {
         }
 
         const auto actual = popcount_cpp_raw(arg);
+        const auto actual_size =
+            static_cast<decltype(array_size)>(actual.size());
+        ASSERT_IS_EQUAL(actual_size, array_size);
         expect_true(are_equal(actual, expected));
     }
 }

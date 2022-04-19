@@ -5,7 +5,7 @@ RUN apt-get install -y clang clang-format clang-tidy gdb
 
 RUN echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl', Ncpus = 4)" >> /usr/local/lib/R/etc/Rprofile.site
 RUN Rscript -e 'install.packages(c("Rcpp"))'
-RUN Rscript -e 'install.packages(c("testthat", "spelling", "covr", "devtools", "DT", "microbenchmark", "dplyr", "ggplot2", "purrr", "lintr", "styler", "knitr", "markdown", "rmarkdown", "kableExtra"))'
+RUN Rscript -e 'install.packages(c("testthat", "spelling", "xml2", "covr", "devtools", "DT", "microbenchmark", "dplyr", "ggplot2", "purrr", "lintr", "styler", "knitr", "markdown", "rmarkdown", "kableExtra"))'
 RUN Rscript -e 'remotes::install_github("hrbrmstr/cloc")'
 
 EXPOSE 8787

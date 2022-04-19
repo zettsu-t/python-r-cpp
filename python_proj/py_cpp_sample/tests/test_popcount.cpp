@@ -161,7 +161,117 @@ template <typename ArrayType> void clean_1d_array(ArrayType &arg) {
     }
     return;
 }
+
+template <typename T, typename U>
+bool are_equal(const T &expected, const U &actual) {
+    // Callers must guarantee the expected and the actual
+    // have a common size.
+    auto buffer = actual.request();
+    if (buffer.ndim != 1) {
+        return false;
+    }
+
+    auto actual_size = buffer.shape.at(0);
+    auto expected_size = expected.size();
+    if (expected_size != static_cast<decltype(expected_size)>(actual_size)) {
+        return false;
+    }
+
+    bool matched = true;
+    for (decltype(actual_size) index{0}; index < actual_size; ++index) {
+        matched &= (expected.at(index) == *actual.data(index));
+    }
+    return matched;
+}
+
+template <typename T, typename U> void copy_array(const T &src, U &dst) {
+    // Callers must guarantee the expected and the actual
+    // have a common size.
+    auto buffer = dst.request();
+    if (buffer.ndim != 1) {
+        return;
+    }
+
+    auto dst_size = buffer.shape.at(0);
+    auto src_size = src.size();
+    if (src_size != static_cast<decltype(src_size)>(dst_size)) {
+        return;
+    }
+
+    for (decltype(dst_size) index{0}; index < dst_size; ++index) {
+        *dst.mutable_data(index) = src.at(index);
+    }
+    return;
+}
 } // namespace
+
+class TestHelper : public ::testing::Test {};
+
+TEST_F(TestHelper, Claen1dArray) {
+    PyUint8Array arg_empty({0});
+    clean_1d_array(arg_empty);
+
+    PyUint8Array arg1({1});
+    clean_1d_array(arg1);
+    EXPECT_FALSE(*arg1.data(0));
+
+    PyUint8Array arg2({2});
+    clean_1d_array(arg2);
+    EXPECT_FALSE(*arg2.data(0));
+    EXPECT_FALSE(*arg2.data(1));
+}
+
+TEST_F(TestHelper, AreEqual) {
+    using Expected = std::vector<uint64_t>;
+    using Actual = PyUint64Array;
+    // Set elements
+    const Expected expected_empty;
+    const Expected expected_one{1};
+    const Expected expected_one_alt{4};
+    const Expected expected_many{2, 3, 5};
+    const Expected expected_many_alt{2, 3, 6};
+
+    // Set shapes and elements
+    Actual actual_empty({0});
+    Actual actual_one({1});
+    *actual_one.mutable_data(0) = expected_one.at(0);
+
+    PyBindSize array_size = 3;
+    Actual actual_many({array_size});
+    copy_array(expected_many, actual_many);
+
+    EXPECT_TRUE(are_equal(expected_empty, actual_empty));
+    EXPECT_TRUE(are_equal(expected_one, actual_one));
+    EXPECT_TRUE(are_equal(expected_many, actual_many));
+
+    EXPECT_FALSE(are_equal(expected_empty, actual_one));
+    EXPECT_FALSE(are_equal(expected_many, actual_empty));
+    EXPECT_FALSE(are_equal(expected_one_alt, actual_one));
+    EXPECT_FALSE(are_equal(expected_many_alt, actual_many));
+
+    *actual_many.mutable_data(2) = expected_many_alt.at(2);
+    EXPECT_FALSE(are_equal(expected_many, actual_many));
+};
+
+TEST_F(TestHelper, CopyArray) {
+    using Expected = std::vector<uint8_t>;
+    using Actual = PyUint8Array;
+    const Expected expected_empty;
+    const Expected expected_one{1};
+    const Expected expected_many{2, 3, 5};
+
+    Actual actual_empty({0});
+    copy_array(expected_empty, actual_empty);
+    EXPECT_TRUE(are_equal(expected_empty, actual_empty));
+
+    Actual actual_one({1});
+    copy_array(expected_one, actual_one);
+    EXPECT_TRUE(are_equal(expected_one, actual_one));
+
+    Actual actual_many({3});
+    copy_array(expected_many, actual_many);
+    EXPECT_TRUE(are_equal(expected_many, actual_many));
+}
 
 class TestPopcountPybind11 : public ::testing::Test {};
 class TestPopcountBoost : public ::testing::Test {};
@@ -266,17 +376,11 @@ TEST_F(TestPopcountPybind11, ValuesUint8) {
     PyUint8Array arg({arg_array_size});
     ASSERT_TRUE(check_numpy_array_type_pybind11<Element>(arg, array_size));
     clean_1d_array(arg);
-
-    for (decltype(array_size) index{0}; index < array_size; ++index) {
-        *arg.mutable_data(index) = Input_Uint8.at(index);
-    }
+    copy_array(Input_Uint8, arg);
 
     const auto actual = py_cpp_sample::popcount_cpp_uint8(arg);
     ASSERT_TRUE(check_count_type_pybind11(actual, array_size));
-
-    for (decltype(array_size) index{0}; index < array_size; ++index) {
-        ASSERT_EQ(Expected_Uint8.at(index), *actual.data(index));
-    }
+    ASSERT_TRUE(are_equal(Expected_Uint8, actual));
 }
 
 TEST_F(TestPopcountBoost, ValuesUint8) {
@@ -290,17 +394,13 @@ TEST_F(TestPopcountBoost, ValuesUint8) {
     ASSERT_TRUE(check_numpy_array_type_boost<Element>(arg, array_size));
 
     Element *arg_values = reinterpret_cast<Element *>(arg.get_data());
-    for (decltype(array_size) index{0}; index < array_size; ++index) {
-        arg_values[index] = Input_Uint8.at(index);
-    }
-
+    std::copy(Input_Uint8.begin(), Input_Uint8.end(), arg_values);
     const auto actual = py_cpp_sample::popcount_cpp_boost(arg);
     ASSERT_TRUE(check_count_type_boost(actual, array_size));
 
-    Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
-    for (decltype(array_size) index{0}; index < array_size; ++index) {
-        ASSERT_EQ(Expected_Uint8.at(index), actual_counts[index]);
-    }
+    const Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
+    ASSERT_TRUE(std::equal(Expected_Uint8.begin(), Expected_Uint8.end(),
+                           actual_counts));
 }
 
 TEST_F(TestPopcountPybind11, ValuesUint64) {
@@ -312,17 +412,11 @@ TEST_F(TestPopcountPybind11, ValuesUint64) {
     PyUint64Array arg({arg_array_size});
     ASSERT_TRUE(check_numpy_array_type_pybind11<Element>(arg, array_size));
     clean_1d_array(arg);
-
-    for (decltype(array_size) index{0}; index < array_size; ++index) {
-        *arg.mutable_data(index) = Input_Uint64.at(index);
-    }
+    copy_array(Input_Uint64, arg);
 
     const auto actual = py_cpp_sample::popcount_cpp_uint64(arg);
     ASSERT_TRUE(check_count_type_pybind11(actual, array_size));
-
-    for (decltype(array_size) index{0}; index < array_size; ++index) {
-        ASSERT_EQ(Expected_Uint64.at(index), *actual.data(index));
-    }
+    ASSERT_TRUE(are_equal(Expected_Uint64, actual));
 }
 
 TEST_F(TestPopcountBoost, ValuesUint64) {
@@ -336,17 +430,13 @@ TEST_F(TestPopcountBoost, ValuesUint64) {
     ASSERT_TRUE(check_numpy_array_type_boost<Element>(arg, array_size));
 
     Element *arg_values = reinterpret_cast<Element *>(arg.get_data());
-    for (decltype(array_size) index{0}; index < array_size; ++index) {
-        arg_values[index] = Input_Uint64.at(index);
-    }
-
+    std::copy(Input_Uint64.begin(), Input_Uint64.end(), arg_values);
     const auto actual = py_cpp_sample::popcount_cpp_boost(arg);
     ASSERT_TRUE(check_count_type_boost(actual, array_size));
 
-    Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
-    for (decltype(array_size) index{0}; index < array_size; ++index) {
-        ASSERT_EQ(Expected_Uint64.at(index), actual_counts[index]);
-    }
+    const Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
+    ASSERT_TRUE(std::equal(Expected_Uint64.begin(), Expected_Uint64.end(),
+                           actual_counts));
 }
 
 TEST_F(TestPopcountPybind11, FullValuesUint8) {
@@ -369,10 +459,7 @@ TEST_F(TestPopcountPybind11, FullValuesUint8) {
 
     const auto actual = py_cpp_sample::popcount_cpp_uint8(arg);
     ASSERT_TRUE(check_count_type_pybind11(actual, array_size));
-
-    for (decltype(array_size) index{0}; index < array_size; ++index) {
-        ASSERT_EQ(expected.at(index), *actual.data(index));
-    }
+    ASSERT_TRUE(are_equal(expected, actual));
 }
 
 TEST_F(TestPopcountBoost, FullValuesUint8) {
@@ -395,10 +482,8 @@ TEST_F(TestPopcountBoost, FullValuesUint8) {
     const auto actual = py_cpp_sample::popcount_cpp_boost(arg);
     ASSERT_TRUE(check_count_type_boost(actual, array_size));
 
-    Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
-    for (decltype(array_size) index{0}; index < array_size; ++index) {
-        ASSERT_EQ(expected.at(index), actual_counts[index]);
-    }
+    const Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
+    ASSERT_TRUE(std::equal(expected.begin(), expected.end(), actual_counts));
 }
 
 TEST_F(TestPopcountPybind11, LargeUint64) {
@@ -419,10 +504,7 @@ TEST_F(TestPopcountPybind11, LargeUint64) {
 
     const auto actual = py_cpp_sample::popcount_cpp_uint64(arg);
     ASSERT_TRUE(check_count_type_pybind11(actual, array_size));
-
-    for (decltype(array_size) index{0}; index < array_size; ++index) {
-        ASSERT_EQ(expected.at(index), *actual.data(index));
-    }
+    ASSERT_TRUE(are_equal(expected, actual));
 }
 
 TEST_F(TestPopcountBoost, LargeUint64) {
@@ -443,10 +525,8 @@ TEST_F(TestPopcountBoost, LargeUint64) {
     const auto actual = py_cpp_sample::popcount_cpp_boost(arg);
     ASSERT_TRUE(check_count_type_boost(actual, array_size));
 
-    Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
-    for (decltype(array_size) index{0}; index < array_size; ++index) {
-        ASSERT_EQ(expected.at(index), actual_counts[index]);
-    }
+    const Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
+    ASSERT_TRUE(std::equal(expected.begin(), expected.end(), actual_counts));
 }
 
 TEST_F(TestPopcountPybind11, BitsUint64) {
@@ -488,7 +568,8 @@ TEST_F(TestPopcountBoost, BitsUint64) {
         const auto actual = py_cpp_sample::popcount_cpp_boost(arg);
         ASSERT_TRUE(check_count_type_boost(actual, array_size));
 
-        Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
+        const Count *actual_counts =
+            reinterpret_cast<Count *>(actual.get_data());
         ASSERT_EQ(count, *actual_counts);
         value |= mask;
         mask <<= 1;
