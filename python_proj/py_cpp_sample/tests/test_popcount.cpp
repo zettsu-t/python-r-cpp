@@ -2,6 +2,7 @@
 #include "popcount_boost.h"
 #include <gtest/gtest.h>
 #include <limits>
+#include <pybind11/embed.h>
 #include <stdexcept>
 #include <type_traits>
 #include <vector>
@@ -603,7 +604,11 @@ TEST_F(TestPopcountBoost, BitsUint64) {
 
 int main(int argc, char *argv[]) {
     ::testing::InitGoogleTest(&argc, argv);
-    Py_Initialize();
+
+    // Py_Initialize() and Py_Finalize() in an RAII manner
+    pybind11::scoped_interpreter guard{};
     boost::python::numpy::initialize();
-    return RUN_ALL_TESTS();
+
+    const auto result = RUN_ALL_TESTS();
+    return result;
 }

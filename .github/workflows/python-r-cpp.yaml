@@ -112,22 +112,6 @@ jobs:
           lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info
           genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 
-      - name: Setup AddressSanitizer for the Python package
-        continue-on-error: true
-        working-directory: ./python_proj/py_cpp_sample
-        run: |
-          rm -rf tests/build
-          mkdir -p tests/build
-          cp tests/ClangOverrides.txt tests/build/
-
-      - name: Check with clang++ and AddressSanitizer in debugging for the Python package
-        continue-on-error: true
-        working-directory: ./python_proj/py_cpp_sample/tests/build
-        run: |
-          CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=ClangOverrides.txt ..
-          make VERBOSE=1
-          make test || ./test_popcount || exit 0
-
       - name: Check C++ code in the Python package
         continue-on-error: true
         working-directory: ./python_proj/py_cpp_sample
@@ -150,6 +134,22 @@ jobs:
           doxygen -g
           patch < ../patch/Doxyfile.diff
           doxygen
+
+      - name: Setup AddressSanitizer for the Python package
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample
+        run: |
+          rm -rf tests/build
+          mkdir -p tests/build
+          cp tests/ClangOverrides.txt tests/build/
+
+      - name: Check with clang++ and AddressSanitizer in debugging for the Python package
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample/tests/build
+        run: |
+          CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=ClangOverrides.txt ..
+          make VERBOSE=1
+          make test || ./test_popcount || exit 0
 
       - name: Install the R Package
         continue-on-error: true
@@ -197,6 +197,13 @@ jobs:
           lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info
           genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 
+      - name: Check C++ code in the R package
+        continue-on-error: true
+        working-directory: ./r_proj/rCppSample
+        run: |
+          echo "-I $(find /usr -name R.h | head -1 | xargs dirname)" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/Rcpp/include"), sep="", collapse=" "))')" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/testthat/include"), sep="", collapse=" "))')" > _r_includes
+          clang-tidy src/*.cpp tests/*.cpp -checks=perf\* -- -I src $(cat _r_includes) -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
+
       - name: Setup AddressSanitizer for the R package
         continue-on-error: true
         working-directory: ./r_proj/rCppSample
@@ -209,13 +216,6 @@ jobs:
         continue-on-error: true
         working-directory: ./r_proj/rCppSample/tests/build
         run: |
-          clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=ClangOverrides.txt ..
+          CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=ClangOverrides.txt ..
           make VERBOSE=1
           make test || ./test_popcount || exit 0
-
-      - name: Check C++ code in the R package
-        continue-on-error: true
-        working-directory: ./r_proj/rCppSample
-        run: |
-          echo "-I $(find /usr -name R.h | head -1 | xargs dirname)" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/Rcpp/include"), sep="", collapse=" "))')" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/testthat/include"), sep="", collapse=" "))')" > _r_includes
-          clang-tidy src/*.cpp tests/*.cpp -checks=perf\* -- -I src $(cat _r_includes) -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
