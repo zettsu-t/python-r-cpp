@@ -100,8 +100,10 @@ cd ../../../..
 We can use clang++ and AddressSanitizer in debugging.
 
 ```
-cp ClangOverrides.txt ~/
-CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=/root/ClangOverrides.txt ..
+mkdir -p tests/build
+cp tests/ClangOverrides.txt tests/build/
+cd tests/build
+CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=ClangOverrides.txt ..
 make VERBOSE=1
 make test
 ```
