@@ -76,8 +76,17 @@ WORKDIR "${R_PROJECT_DIR}/tests/build/CMakeFiles/test_popcount.dir"
 RUN lcov -d . -c -o coverage.info
 RUN lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info
 RUN genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
-WORKDIR "${R_PROJECT_DIR}"
 
+WORKDIR "${R_PROJECT_DIR}"
+RUN rm -rf "${R_PROJECT_DIR}/tests/build"
+RUN mkdir -p "${R_PROJECT_DIR}/tests/build"
+WORKDIR "${R_PROJECT_DIR}/tests/build"
+RUN cp "${R_PROJECT_DIR}/tests/ClangOverrides.txt" /root/
+RUN CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=/root/ClangOverrides.txt ..
+RUN make VERBOSE=1
+RUN make test
+
+WORKDIR "${R_PROJECT_DIR}"
 RUN echo "-I $(find /usr -name R.h | head -1 | xargs dirname)" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/Rcpp/include"), sep="", collapse=" "))')" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/testthat/include"), sep="", collapse=" "))')" > _r_includes
 RUN clang-tidy src/*.cpp tests/*.cpp -checks=perf\* -- -I src $(cat _r_includes) -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
 
@@ -106,8 +115,17 @@ WORKDIR "${PYTHON_PROJECT_DIR}/tests/build/CMakeFiles/test_popcount.dir"
 RUN lcov -d . -c -o coverage.info
 RUN lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info
 RUN genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
-WORKDIR "${PYTHON_PROJECT_DIR}"
 
+WORKDIR "${PYTHON_PROJECT_DIR}"
+RUN rm -rf "${PYTHON_PROJECT_DIR}/tests/build"
+RUN mkdir -p "${PYTHON_PROJECT_DIR}/tests/build"
+WORKDIR "${PYTHON_PROJECT_DIR}/tests/build"
+RUN cp "${PYTHON_PROJECT_DIR}/tests/ClangOverrides.txt" /root/
+RUN CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=/root/ClangOverrides.txt ..
+RUN make VERBOSE=1
+RUN make test
+
+WORKDIR "${PYTHON_PROJECT_DIR}"
 RUN clang-tidy src/cpp_impl/*.cpp src/cpp_impl_boost/*.cpp tests/*.cpp -checks=perf\* -- -I src/cpp_impl -I src/cpp_impl_boost -I /opt/boost/include -I $(python -m sysconfig | egrep "\\bINCLUDEPY" | awk '{print $3}' | sed -e 's/"//g') -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
 
 RUN sphinx-quickstart -q -p py_cpp_sample -a "Author's name"

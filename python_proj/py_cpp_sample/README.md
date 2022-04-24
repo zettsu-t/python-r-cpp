@@ -97,6 +97,15 @@ genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 cd ../../../..
 ```
 
+We can use clang++ and AddressSanitizer in debugging.
+
+```
+cp ClangOverrides.txt ~/
+CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=/root/ClangOverrides.txt ..
+make VERBOSE=1
+make test
+```
+
 We can format C++ code pretty with clang-format.
 
 ```

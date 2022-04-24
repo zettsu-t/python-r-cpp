@@ -30,8 +30,9 @@ template <typename T> rCppSample::IntegerVector popcount_cpp_impl(const T &xs) {
     for (decltype(size) i = 0; i < size; ++i) {
         const auto x = xs[i];
 #ifdef __GNUC__
-        const auto v =
-            is_na_integer(x) ? get_na_value() : __builtin_popcount(x);
+        const auto v = is_na_integer(x)
+                           ? get_na_value()
+                           : __builtin_popcount(static_cast<unsigned int>(x));
 #else
 #error Use an alternative of __builtin_popcount
 #endif

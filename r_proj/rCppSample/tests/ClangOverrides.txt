@@ -1,0 +1,9 @@
+# Based on
+# https://stackoverflow.com/questions/7031126/switching-between-gcc-and-clang-llvm-using-cmake
+# and run
+# cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=../ClangOverrides.txt ..
+include(CMakeForceCompiler)
+set(CMAKE_C_COMPILER "/usr/bin/clang")
+set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
+set(CMAKE_CXX_FLAGS_INIT "-Wall -Wextra -Wconversion -Wformat=2 -Wcast-qual -Wcast-align -Wwrite-strings -Wfloat-equal -Wpointer-arith -Wno-unused-parameter")
+set(CMAKE_CXX_FLAGS_DEBUG_INIT "-g -O0 -fsanitize=undefined,address")

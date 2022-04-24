@@ -77,6 +77,15 @@ lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltere
 genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 ```
 
+We can use clang++ and AddressSanitizer in debugging.
+
+```
+cp ClangOverrides.txt ~/
+CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=/root/ClangOverrides.txt ..
+make VERBOSE=1
+make test
+```
+
 C++ code in this package switches data types to export between this package implementation and unit tests via the macro UNIT_TEST_CPP. Launching R in C++ unit tests can avoid it. The unifdef command removes UNIT_TEST_CPP blocks.
 
 ```

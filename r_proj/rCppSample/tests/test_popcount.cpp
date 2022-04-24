@@ -120,7 +120,8 @@ TEST_F(TestFeedRcode, NearFullSize) {
     const auto buf_size = full_size + 2;
 
     for (RcodeFeeder::BufLen buflen{min_size}; buflen < full_size; ++buflen) {
-        std::vector<RcodeFeeder::BufElement> line_buffer(buf_size);
+        using LineBuffer = std::vector<RcodeFeeder::BufElement>;
+        LineBuffer line_buffer(static_cast<LineBuffer::size_type>(buf_size));
         std::fill(line_buffer.begin(), line_buffer.end(), 0);
         auto buf = line_buffer.data();
         RcodeFeeder feeder(r_code);
@@ -139,7 +140,8 @@ TEST_F(TestFeedRcode, FullSize) {
     expected += "\n";
 
     for (RcodeFeeder::BufLen buflen{full_size}; buflen <= buf_size; ++buflen) {
-        std::vector<RcodeFeeder::BufElement> line_buffer(buf_size);
+        using LineBuffer = std::vector<RcodeFeeder::BufElement>;
+        LineBuffer line_buffer(static_cast<LineBuffer::size_type>(buf_size));
         std::fill(line_buffer.begin(), line_buffer.end(), 0);
         auto buf = line_buffer.data();
         RcodeFeeder feeder(r_code);

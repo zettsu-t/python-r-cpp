@@ -112,6 +112,22 @@ jobs:
           lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info
           genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 
+      - name: Setup AddressSanitizer for the Python package
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample
+        run: |
+          rm -rf "tests/build"
+          mkdir -p "tests/build"
+          cp tests/ClangOverrides.txt "$HOME/"
+
+      - name: Check with clang++ and AddressSanitizer in debugging for the Python package
+        continue-on-error: true
+        working-directory: ./python_proj/py_cpp_sample/tests/build
+        run: |
+          CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_USER_MAKE_RULES_OVERRIDE=$HOME/ClangOverrides.txt" ..
+          make VERBOSE=1
+          make test
+
       - name: Check C++ code in the Python package
         continue-on-error: true
         working-directory: ./python_proj/py_cpp_sample
@@ -180,6 +196,22 @@ jobs:
           lcov -d . -c -o coverage.info
           lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info
           genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
+
+      - name: Setup AddressSanitizer for the R package
+        continue-on-error: true
+        working-directory: ./r_proj/rCppSample
+        run: |
+          rm -rf "tests/build"
+          mkdir -p "tests/build"
+          cp tests/ClangOverrides.txt "$HOME/"
+
+      - name: Check with clang++ and AddressSanitizer in debugging for the R package
+        continue-on-error: true
+        working-directory: ./r_proj/rCppSample/tests/build
+        run: |
+          CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_USER_MAKE_RULES_OVERRIDE=$HOME/ClangOverrides.txt" ..
+          make VERBOSE=1
+          make test
 
       - name: Check C++ code in the R package
         continue-on-error: true
