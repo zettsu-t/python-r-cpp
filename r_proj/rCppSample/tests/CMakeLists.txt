@@ -20,7 +20,7 @@ endif()
 
 string(REGEX REPLACE "/Rcpp.h$" "" RCPP_INCLUDE_DIR "${RCPP_INCLUDE_DIR}")
 find_path(RCPP_INCLUDE_DIR "Rcpp.h" HINTS "${RCPP_INCLUDE_DIR}")
-include_directories("${R_INCLUDE_DIR}" "${RCPP_INCLUDE_DIR}")
+include_directories(SYSTEM "${R_INCLUDE_DIR}" "${RCPP_INCLUDE_DIR}")
 
 # Use Google Test
 # Based on
@@ -48,7 +48,7 @@ set(BASEPATH "${CMAKE_SOURCE_DIR}")
 include_directories("${BASEPATH}" "${BASEPATH}/../src")
 
 # Executable unit tests
-add_compile_options(-DSTRICT_R_HEADERS -DUNIT_TEST_CPP)
+add_compile_options(-DSTRICT_R_HEADERS -Wall -Wextra -Wconversion -Wformat=2 -Wcast-qual -Wcast-align -Wwrite-strings -Wfloat-equal -Wpointer-arith -Wno-unused-parameter)
 add_executable(test_popcount ../src/popcount.cpp test_popcount.cpp)
 target_link_libraries(test_popcount "${R_LIBRARY}" gtest_main)
 gtest_add_tests(TARGET test_popcount)

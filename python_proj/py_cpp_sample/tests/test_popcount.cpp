@@ -10,7 +10,6 @@ namespace {
 // Argument and return types
 using PyUint8Array = pybind11::array_t<uint8_t, pybind11::array::c_style |
                                                     pybind11::array::forcecast>;
-
 using PyUint64Array =
     pybind11::array_t<uint64_t,
                       pybind11::array::c_style | pybind11::array::forcecast>;
@@ -66,7 +65,8 @@ bool check_numpy_array_type_pybind11(const ArrayType &actual,
     }
 
     // Exact element size
-    if (buffer.shape.at(0) != expected_size) {
+    if (static_cast<decltype(expected_size)>(buffer.shape.at(0)) !=
+        expected_size) {
         return false;
     }
 
@@ -107,7 +107,8 @@ bool check_numpy_array_type_boost(const ArrayType &actual,
     }
 
     // Exact element size
-    if (actual.shape(0) != expected_size) {
+    if (static_cast<decltype(expected_size)>(actual.shape(0)) !=
+        expected_size) {
         return false;
     }
 
@@ -147,7 +148,8 @@ std::vector<Count> setup_popcount(SizeType array_size, SizeType value_offset,
              ++bit_index) {
             decltype(low_value) mask = 1;
             mask <<= bit_index;
-            expected.at(index) += ((low_value & mask) != 0);
+            expected.at(index) = static_cast<Count>(expected.at(index) +
+                                                    ((low_value & mask) != 0));
         }
     }
 
@@ -292,6 +294,29 @@ TEST_F(TestPopcountPybind11, InvalidDimension) {
     }
 
     ASSERT_THROW(py_cpp_sample::popcount_cpp_uint8(arg), std::runtime_error);
+}
+
+TEST_F(TestPopcountPybind11, Strides) {
+    using Element = uint64_t;
+    constexpr PyBindSize nrow = 3;
+    constexpr PyBindSize ncol = 63;
+    pybind11::array_t<Element, pybind11::array::c_style> arg_row_major(
+        {nrow, ncol});
+    const auto buffer_row_major = arg_row_major.request();
+
+    ASSERT_EQ(nrow, buffer_row_major.shape.at(0));
+    ASSERT_EQ(ncol, buffer_row_major.shape.at(1));
+    ASSERT_LE(sizeof(Element) * ncol, buffer_row_major.strides.at(0));
+    ASSERT_EQ(sizeof(Element), buffer_row_major.strides.at(1));
+
+    pybind11::array_t<Element, pybind11::array::f_style> arg_column_major(
+        {nrow, ncol});
+    const auto buffer_column_major = arg_column_major.request();
+
+    ASSERT_EQ(nrow, buffer_column_major.shape.at(0));
+    ASSERT_EQ(ncol, buffer_column_major.shape.at(1));
+    ASSERT_EQ(sizeof(Element), buffer_column_major.strides.at(0));
+    ASSERT_LE(sizeof(Element) * nrow, buffer_column_major.strides.at(1));
 }
 
 TEST_F(TestPopcountBoost, InvalidDimension) {

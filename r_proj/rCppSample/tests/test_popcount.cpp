@@ -19,9 +19,12 @@ bool are_equal(const T &expected, const U &actual) {
 
 class RcodeFeeder {
   public:
+    using BufElement = unsigned char;
+    using BufLen = int;
+    using ReturnCode = int;
     explicit RcodeFeeder(const std::string &r_code) : r_code_(r_code) {}
     virtual ~RcodeFeeder(void) = default;
-    int feed_r_code(unsigned char *buf, int buflen) {
+    ReturnCode feed_r_code(BufElement *buf, BufLen buflen) {
         if (!buf || !buflen) {
             return Return_Code;
         }
@@ -36,15 +39,14 @@ class RcodeFeeder {
             return Return_Code;
         }
 
-        std::string code;
-        code += r_code_;
+        std::string code{r_code_};
         code += r_suffix_;
         std::strncpy(reinterpret_cast<char *>(buf), code.c_str(),
                      code.size() + 1);
         return Return_Code;
     }
 
-    static constexpr int Return_Code{1};
+    static constexpr ReturnCode Return_Code{1};
 
   private:
     std::string r_code_;
@@ -53,8 +55,8 @@ class RcodeFeeder {
 
 const std::string RcodeFeeder::r_suffix_{"\n"};
 
-template <size_t N>
-auto call_feed_rcode(RcodeFeeder &feeder, unsigned char (&buf)[N]) {
+template <RcodeFeeder::BufLen N>
+auto call_feed_rcode(RcodeFeeder &feeder, RcodeFeeder::BufElement (&buf)[N]) {
     return feeder.feed_r_code(buf, N);
 }
 } // namespace
@@ -87,7 +89,7 @@ TEST_F(TestFeedRcode, NullEmptyBuffer) {
     EXPECT_EQ(feeder.Return_Code, feeder.feed_r_code(nullptr, 0));
 
     const char expected = 'A';
-    unsigned char buf[2]{expected, '\n'};
+    RcodeFeeder::BufElement buf[2]{expected, '\n'};
     EXPECT_EQ(feeder.Return_Code, feeder.feed_r_code(buf, 0));
     ASSERT_EQ(expected, *buf);
 }
@@ -95,31 +97,30 @@ TEST_F(TestFeedRcode, NullEmptyBuffer) {
 TEST_F(TestFeedRcode, ShortBuffer) {
     const std::string r_code{"a"};
     RcodeFeeder feeder1(r_code);
-    unsigned char buf1[1]{'\n'};
+    RcodeFeeder::BufElement buf1[1]{'\n'};
     EXPECT_EQ(feeder1.Return_Code, call_feed_rcode(feeder1, buf1));
     ASSERT_FALSE(*buf1);
 
     RcodeFeeder feeder2(r_code);
-    unsigned char buf2[]{'a', 'b'};
+    RcodeFeeder::BufElement buf2[]{'a', 'b'};
     EXPECT_EQ(feeder2.Return_Code, call_feed_rcode(feeder2, buf2));
     ASSERT_FALSE(*buf2);
 
     RcodeFeeder feeder3(r_code);
-    unsigned char buf3[3]{};
+    RcodeFeeder::BufElement buf3[3]{};
     EXPECT_EQ(feeder3.Return_Code, call_feed_rcode(feeder3, buf3));
     EXPECT_EQ(r_code.at(0), buf3[0]);
 }
 
 TEST_F(TestFeedRcode, NearFullSize) {
     const std::string r_code{"library(packageName)"};
-    RcodeFeeder common_feeder(r_code);
-    const auto min_size = static_cast<int>(r_code.size() - 1);
+    const auto min_size = static_cast<RcodeFeeder::BufLen>(r_code.size() - 1);
     // trailing "\n\0"
-    const auto full_size = static_cast<int>(r_code.size() + 2);
+    const auto full_size = static_cast<RcodeFeeder::BufLen>(r_code.size() + 2);
     const auto buf_size = full_size + 2;
 
-    std::vector<unsigned char> line_buffer(buf_size);
-    for (int buflen{min_size}; buflen < full_size; ++buflen) {
+    for (RcodeFeeder::BufLen buflen{min_size}; buflen < full_size; ++buflen) {
+        std::vector<RcodeFeeder::BufElement> line_buffer(buf_size);
         std::fill(line_buffer.begin(), line_buffer.end(), 0);
         auto buf = line_buffer.data();
         RcodeFeeder feeder(r_code);
@@ -131,15 +132,14 @@ TEST_F(TestFeedRcode, NearFullSize) {
 
 TEST_F(TestFeedRcode, FullSize) {
     const std::string r_code{"library(packageName)"};
-    RcodeFeeder common_feeder(r_code);
     // trailing "\n\0"
-    const auto full_size = static_cast<int>(r_code.size() + 2);
+    const auto full_size = static_cast<RcodeFeeder::BufLen>(r_code.size() + 2);
     const auto buf_size = full_size + 2;
-    auto expected = r_code;
+    std::string expected{r_code};
     expected += "\n";
 
-    std::vector<unsigned char> line_buffer(buf_size);
-    for (int buflen{full_size}; buflen <= buf_size; ++buflen) {
+    for (RcodeFeeder::BufLen buflen{full_size}; buflen <= buf_size; ++buflen) {
+        std::vector<RcodeFeeder::BufElement> line_buffer(buf_size);
         std::fill(line_buffer.begin(), line_buffer.end(), 0);
         auto buf = line_buffer.data();
         RcodeFeeder feeder(r_code);
@@ -155,7 +155,7 @@ class TestStrnpy : public ::testing::Test {};
 TEST_F(TestStrnpy, NullBuffer) {
     constexpr size_t max_size = 8;
     const char cstr[max_size]{"0123456"};
-    constexpr size_t buf_size = max_size * 2;
+    constexpr size_t buf_size = max_size + 2;
 
     for (size_t size = 0; size < buf_size; ++size) {
         std::vector<char> buffer(buf_size);
@@ -163,13 +163,41 @@ TEST_F(TestStrnpy, NullBuffer) {
         std::strncpy(buffer.data(), cstr, size);
         if (size > 0) {
             if (size >= max_size) {
-                EXPECT_FALSE(buffer.at(size - 1));
-                EXPECT_FALSE(buffer.at(max_size - 1));
+                ASSERT_FALSE(buffer.at(size - 1));
+                ASSERT_FALSE(buffer.at(max_size - 1));
+                ASSERT_FALSE(std::strcmp(cstr, buffer.data()));
             } else {
                 EXPECT_TRUE(buffer.at(size - 1));
             }
         }
     }
+}
+
+class TestMatrix : public ::testing::Test {};
+
+TEST_F(TestMatrix, Shape) {
+    using Element = double;
+    constexpr int nrow = 63;
+    constexpr int ncol = 3;
+    Rcpp::NumericMatrix m(nrow, ncol);
+
+    Element &left_top = m(0, 0);
+    Element &right = m(0, 1);
+    Element &down = m(1, 0);
+
+    const auto ptrdiff_right = std::addressof(right) - std::addressof(left_top);
+    const auto ptrdiff_down = std::addressof(down) - std::addressof(left_top);
+    ASSERT_LE(nrow, ptrdiff_right);
+    ASSERT_EQ(1, ptrdiff_down);
+
+    const auto addrdiff_right =
+        reinterpret_cast<uintptr_t>(std::addressof(right)) -
+        reinterpret_cast<uintptr_t>(std::addressof(left_top));
+    const auto addrdiff_down =
+        reinterpret_cast<uintptr_t>(std::addressof(down)) -
+        reinterpret_cast<uintptr_t>(std::addressof(left_top));
+    ASSERT_LE(sizeof(Element) * nrow, addrdiff_right);
+    ASSERT_EQ(sizeof(Element), addrdiff_down);
 }
 
 class TestPopcount : public ::testing::Test {};

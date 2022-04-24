@@ -29,13 +29,13 @@ pybind11::array_t<Count> popcount_cpp_impl(
         throw std::runtime_error("Unexpected array layout");
     }
 
-    auto size = buffer_xs.shape.at(0);
     pybind11::array_t<Count, pybind11::array::c_style> counts{buffer_xs.shape};
     auto buffer_counts = counts.request();
     if (buffer_counts.strides.at(0) != sizeof(Count)) {
         throw std::runtime_error("Unexpected array layout");
     }
 
+    auto size = buffer_xs.shape.at(0);
     const SourceType *src = static_cast<const SourceType *>(buffer_xs.ptr);
     Count *dst = static_cast<Count *>(buffer_counts.ptr);
     for (decltype(size) i{0}; i < size; ++i) {
