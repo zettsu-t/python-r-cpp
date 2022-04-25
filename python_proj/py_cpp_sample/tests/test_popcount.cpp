@@ -182,7 +182,8 @@ bool are_equal(const T &expected, const U &actual) {
 
     bool matched = true;
     for (decltype(actual_size) index{0}; index < actual_size; ++index) {
-        matched &= (expected.at(index) == *actual.data(index));
+        matched &= (expected.at(static_cast<decltype(expected_size)>(index)) ==
+                    *actual.data(index));
     }
     return matched;
 }
@@ -201,7 +202,7 @@ template <typename T, typename U> void copy_array(const T &src, U &dst) {
         return;
     }
 
-    for (decltype(dst_size) index{0}; index < dst_size; ++index) {
+    for (decltype(src_size) index{0}; index < src_size; ++index) {
         *dst.mutable_data(index) = src.at(index);
     }
     return;

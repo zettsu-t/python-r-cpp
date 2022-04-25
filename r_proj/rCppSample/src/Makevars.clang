@@ -1,0 +1,3 @@
+CXX_STD=CXX17
+CXX17=clang++
+CXX17FLAGS=-march=native -g -O0 -Wall -Wextra -Wconversion -Wformat=2 -Wcast-qual -Wcast-align -Wwrite-strings -Wfloat-equal -Wpointer-arith -Wno-unused-parameter -isystem /usr/local/lib/R/include -isystem /usr/local/lib/R/site-library/Rcpp/include -isystem usr/local/lib/R/site-library/testthat/include -isystem /usr/local/include

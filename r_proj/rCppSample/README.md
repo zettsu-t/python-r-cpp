@@ -65,6 +65,12 @@ lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltere
 genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
 ```
 
+We can use clang++ instead of g++.
+
+``` bash
+cp src/Makevars.clang ~/.R/Makevars
+```
+
 We can use clang++ and AddressSanitizer in debugging.
 
     mkdir -p tests/build
