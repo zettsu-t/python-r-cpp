@@ -55,6 +55,8 @@ RUN find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cp
 RUN find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'cp "$1".undef "$1"' -- '{}'
 
 ## cloc
+RUN rm -rf "${R_PROJECT_DIR}/tests/build"
+RUN rm -rf "${PYTHON_PROJECT_DIR}/tests/build"
 RUN Rscript -e "cloc::cloc('${PYTHON_PROJECT_DIR}')"
 RUN Rscript -e "cloc::cloc('${R_PROJECT_DIR}')"
 
@@ -81,6 +83,16 @@ WORKDIR "${R_PROJECT_DIR}"
 RUN rm -rf "${R_PROJECT_DIR}/tests/build"
 RUN mkdir -p "${R_PROJECT_DIR}/tests/build"
 WORKDIR "${R_PROJECT_DIR}/tests/build"
+RUN cp "${R_PROJECT_DIR}/tests/ClangOverrides.txt" "${R_PROJECT_DIR}/tests/build/"
+RUN CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=ClangOverrides.txt ..
+RUN make VERBOSE=1
+RUN make test || ./test_popcount || exit 0
+
+WORKDIR "${R_PROJECT_DIR}"
+RUN rm -rf "${R_PROJECT_DIR}/tests/build"
+RUN mkdir -p "${R_PROJECT_DIR}/tests/build"
+WORKDIR "${R_PROJECT_DIR}/tests/build"
+RUN sed -i -e "s/sanitize=[a-z,]*/sanitize=memory -fno-omit-frame-pointer -fno-optimize-sibling-calls/" "${R_PROJECT_DIR}/tests/ClangOverrides.txt"
 RUN cp "${R_PROJECT_DIR}/tests/ClangOverrides.txt" "${R_PROJECT_DIR}/tests/build/"
 RUN CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=ClangOverrides.txt ..
 RUN make VERBOSE=1
@@ -120,6 +132,16 @@ WORKDIR "${PYTHON_PROJECT_DIR}"
 RUN rm -rf "${PYTHON_PROJECT_DIR}/tests/build"
 RUN mkdir -p "${PYTHON_PROJECT_DIR}/tests/build"
 WORKDIR "${PYTHON_PROJECT_DIR}/tests/build"
+RUN cp "${PYTHON_PROJECT_DIR}/tests/ClangOverrides.txt" "${PYTHON_PROJECT_DIR}/tests/build/"
+RUN CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=ClangOverrides.txt ..
+RUN make VERBOSE=1
+RUN make test || ./test_popcount || exit 0
+
+WORKDIR "${PYTHON_PROJECT_DIR}"
+RUN rm -rf "${PYTHON_PROJECT_DIR}/tests/build"
+RUN mkdir -p "${PYTHON_PROJECT_DIR}/tests/build"
+WORKDIR "${PYTHON_PROJECT_DIR}/tests/build"
+RUN sed -i -e "s/sanitize=[a-z,]*/sanitize=memory -fno-omit-frame-pointer -fno-optimize-sibling-calls/" "${PYTHON_PROJECT_DIR}/tests/ClangOverrides.txt"
 RUN cp "${PYTHON_PROJECT_DIR}/tests/ClangOverrides.txt" "${PYTHON_PROJECT_DIR}/tests/build/"
 RUN CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=ClangOverrides.txt ..
 RUN make VERBOSE=1
