@@ -1,5 +1,7 @@
-library(tidyverse)
 library(cloc)
+library(dplyr)
+library(purrr)
+library(stringr)
 
 # On Windows + RTools
 # old_path <- Sys.getenv("PATH")

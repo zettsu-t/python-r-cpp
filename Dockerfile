@@ -31,7 +31,7 @@ RUN apt install -y libxt-dev
 ENV R_HOME="/usr/local/lib/R"
 
 ## R packages
-RUN Rscript -e 'install.packages(c("remotes", "devtools"))'
+RUN Rscript -e 'install.packages(c("remotes", "devtools", "stringr"))'
 RUN mkdir -p /usr/local/lib/R/etc
 RUN echo "options(repos = c(CRAN = 'https://cran.rstudio.com/'), download.file.method = 'libcurl', Ncpus = 4)" >> /usr/local/lib/R/etc/Rprofile.site
 RUN Rscript -e 'install.packages(c("Rcpp"))'

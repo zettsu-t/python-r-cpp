@@ -60,7 +60,7 @@ jobs:
       - name: Install R package dependencies
         continue-on-error: true
         run: |
-          install.packages(c("remotes", "devtools"))
+          install.packages(c("remotes", "devtools", "stringr"))
           install.packages(c("Rcpp", "testthat", "spelling", "xml2", "covr", "devtools", "DT", "microbenchmark", "dplyr", "ggplot2", "purrr", "lintr", "styler", "knitr", "markdown", "rmarkdown", "kableExtra"))
           remotes::install_github("wch/extrafont")
           remotes::install_github("hrbrmstr/cloc")
