@@ -59,8 +59,8 @@ RUN rm -rf "${R_PROJECT_DIR}/tests/build"
 RUN rm -rf "${PYTHON_PROJECT_DIR}/tests/build"
 RUN Rscript -e "cloc::cloc('${PYTHON_PROJECT_DIR}')"
 RUN Rscript -e "cloc::cloc('${R_PROJECT_DIR}')"
-RUN Rscript -e "dplyr::filter(dplyr::bind_rows(purrr::map(file.path('${PYTHON_PROJECT_DIR}', c('src/py_cpp_sample/__init__.py', 'src/py_cpp_sample/main.py', './tests/__init__.py', './tests/test_main.py', './src/cpp_impl/popcount.h', './src/cpp_impl/popcount.cpp', './src/cpp_impl/popcount_impl.cpp', './src/cpp_impl_boost/popcount_boost.h', './src/cpp_impl_boost/popcount_boost.cpp', './src/cpp_impl_boost/popcount_impl_boost.cpp', './tests/test_popcount.cpp')), ~ cloc::cloc(source = .x))), language != 'SUM')"
-RUN Rscript -e "dplyr::filter(dplyr::bind_rows(purrr::map(file.path('${R_PROJECT_DIR}', c('R/r_cpp_sample.R', 'tests/testthat/test-popcount.R', 'src/popcount.h', 'src/popcount.cpp', 'src/test-popcount.cpp', 'tests/test_popcount.h', 'tests/test_popcount.cpp')), ~ cloc::cloc(source = .x))), language != 'SUM')"
+WORKDIR "${PROJECTS_TOP_DIR}"
+RUN Rscript "${PROJECTS_TOP_DIR}/r_proj/tests/measure_cloc.R"
 
 ## Testing an R package
 WORKDIR "${PROJECTS_TOP_DIR}/r_proj"

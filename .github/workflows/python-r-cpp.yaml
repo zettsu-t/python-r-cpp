@@ -67,14 +67,17 @@ jobs:
           remotes::install_version("Rttf2pt1", version = "1.3.8")
         shell: Rscript {0}
 
-      - name: Measure CLOC
+      - name: Measure CLOC in R and Python packages
         continue-on-error: true
         run: |
           cloc::cloc("python_proj/py_cpp_sample")
           cloc::cloc("r_proj/rCppSample")
-          dplyr::filter(dplyr::bind_rows(purrr::map(file.path("python_proj/py_cpp_sample", c("src/py_cpp_sample/__init__.py", "src/py_cpp_sample/main.py", "./tests/__init__.py", "./tests/test_main.py", "./src/cpp_impl/popcount.h", "./src/cpp_impl/popcount.cpp", "./src/cpp_impl/popcount_impl.cpp", "./src/cpp_impl_boost/popcount_boost.h", "./src/cpp_impl_boost/popcount_boost.cpp", "./src/cpp_impl_boost/popcount_impl_boost.cpp", "./tests/test_popcount.cpp")), ~ cloc::cloc(source = .x))), language != "SUM")
-          dplyr::filter(dplyr::bind_rows(purrr::map(file.path("r_proj/rCppSample", c("R/r_cpp_sample.R", "tests/testthat/test-popcount.R", "src/popcount.h", "src/popcount.cpp", "src/test-popcount.cpp", "tests/test_popcount.h", "tests/test_popcount.cpp")), ~ cloc::cloc(source = .x))), language != "SUM")
         shell: Rscript {0}
+
+      - name: Measure full CLOC
+        continue-on-error: true
+        run: |
+          Rscript r_proj/tests/measure_cloc.R
 
       - name: Testing Python code
         continue-on-error: true
