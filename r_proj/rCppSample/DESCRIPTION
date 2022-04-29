@@ -9,7 +9,8 @@ LinkingTo:
     Rcpp,
     testthat (>= 3.0.0)
 Imports:
-    Rcpp
+    Rcpp,
+    testthat (>= 3.0.0)
 Encoding: UTF-8
 LazyData: true
 Suggests:
