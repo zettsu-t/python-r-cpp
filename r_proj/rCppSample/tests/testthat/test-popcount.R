@@ -34,11 +34,13 @@ test_that("NULL and other non-integers", {
 test_that("NAs", {
   integer_na_set <- as.integer(c(2, NA, 14, NA, 62))
   expected_na_set <- as.integer(c(1, NA, 3, NA, 5))
-  expect_true(are_equal_with_nas(popcount(integer_na_set), expected_na_set))
+  expect_true(are_equal_with_nas(
+    rCppSample::popcount(integer_na_set), expected_na_set
+  ))
 
   integer_na_set <- c(NaN, 3, Inf, 15)
   expected_na_set <- c(NA, 2, NA, 4)
-  actual <- suppressWarnings(popcount(integer_na_set))
+  actual <- suppressWarnings(rCppSample::popcount(integer_na_set))
   expect_true(are_equal_with_nas(actual, expected_na_set))
 })
 
@@ -86,6 +88,6 @@ test_that("popcount_negative_integer_value", {
 test_that("Floating numbers", {
   arg <- c(7.1, 7.9, 8.0, 1e+50, -7.1, -7.9, -8.0, -1e+50)
   expected <- c(3, 3, 1, NA, 30, 30, 29, NA)
-  actual <- suppressWarnings(popcount(arg))
+  actual <- suppressWarnings(rCppSample::popcount(arg))
   expect_true(are_equal_with_nas(actual, expected))
 })

@@ -60,7 +60,7 @@ jobs:
       - name: Install R package dependencies
         continue-on-error: true
         run: |
-          install.packages(c("remotes", "devtools", "stringr"))
+          install.packages(c("remotes", "devtools", "rlang", "stringr"))
           install.packages(c("Rcpp", "testthat", "spelling", "xml2", "covr", "devtools", "DT", "microbenchmark", "dplyr", "ggplot2", "purrr", "lintr", "styler", "knitr", "markdown", "rmarkdown", "kableExtra"))
           remotes::install_github("wch/extrafont")
           remotes::install_github("hrbrmstr/cloc")
@@ -214,6 +214,14 @@ jobs:
       - name: Report coverage of C++ code in the R package
         continue-on-error: true
         working-directory: ./r_proj/rCppSample/tests/build/CMakeFiles/test_popcount.dir
+        run: |
+          lcov -d . -c -o coverage.info
+          lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info
+          genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
+
+      - name: Report coverage of C++ code with STL in the R package
+        continue-on-error: true
+        working-directory: ./r_proj/rCppSample/tests/build/CMakeFiles/test_popcount_std.dir
         run: |
           lcov -d . -c -o coverage.info
           lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info

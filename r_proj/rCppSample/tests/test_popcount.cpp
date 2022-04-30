@@ -123,9 +123,9 @@ TEST_F(TestFeedRcode, NearFullSize) {
         using LineBuffer = std::vector<RcodeFeeder::BufElement>;
         LineBuffer line_buffer(static_cast<LineBuffer::size_type>(buf_size));
         std::fill(line_buffer.begin(), line_buffer.end(), 0);
-        auto buf = line_buffer.data();
-        RcodeFeeder feeder(r_code);
 
+        RcodeFeeder feeder(r_code);
+        auto buf = line_buffer.data();
         EXPECT_EQ(feeder.Return_Code, feeder.feed_r_code(buf, buflen));
         ASSERT_FALSE(line_buffer.at(0));
     }
@@ -143,9 +143,9 @@ TEST_F(TestFeedRcode, FullSize) {
         using LineBuffer = std::vector<RcodeFeeder::BufElement>;
         LineBuffer line_buffer(static_cast<LineBuffer::size_type>(buf_size));
         std::fill(line_buffer.begin(), line_buffer.end(), 0);
-        auto buf = line_buffer.data();
-        RcodeFeeder feeder(r_code);
 
+        RcodeFeeder feeder(r_code);
+        auto buf = line_buffer.data();
         EXPECT_EQ(feeder.Return_Code, feeder.feed_r_code(buf, buflen));
         const std::string actual(reinterpret_cast<const char *>(buf));
         ASSERT_EQ(expected, actual);
@@ -177,6 +177,7 @@ TEST_F(TestStrnpy, NullBuffer) {
 
 class TestMatrix : public ::testing::Test {};
 
+#ifndef UNIT_TEST_CPP
 TEST_F(TestMatrix, Shape) {
     using Element = double;
     constexpr int nrow = 63;
@@ -201,13 +202,16 @@ TEST_F(TestMatrix, Shape) {
     ASSERT_LE(sizeof(Element) * nrow, addrdiff_right);
     ASSERT_EQ(sizeof(Element), addrdiff_down);
 }
+#endif // UNIT_TEST_CPP
 
 class TestPopcount : public ::testing::Test {};
 
 TEST_F(TestPopcount, Size) {
     // Empty arrays are acceptable
-    for (size_t array_size{0}; array_size < 3; ++array_size) {
-        const rCppSample::RawVector arg(array_size, 0);
+    using VectorType = rCppSample::RawVector;
+    using SizeType = typename VectorSize<VectorType>::size_type;
+    for (SizeType array_size{0}; array_size < 3; ++array_size) {
+        const VectorType arg(array_size, 0);
         const auto actual = popcount_cpp_raw(arg);
         ASSERT_EQ(arg.size(), actual.size());
     }
@@ -223,21 +227,22 @@ TEST_F(TestPopcount, RawValues) {
 
 TEST_F(TestPopcount, IntegerValues) {
     // Check some non-negative int32 values
-    const rCppSample::IntegerVector arg{
-        0,       1,          0xfe,       0xff,       0x100,    0xffff,
-        0x10000, 0x7ffffffe, 0x7fffffff, 0x70f0f0f0, 0xf0f0f0f};
-    const rCppSample::IntegerVector expected{0, 1,  7,  8,  1, 16,
-                                             1, 30, 31, 15, 16};
+    using VectorType = rCppSample::IntegerVector;
+    const VectorType arg{0,          1,          0xfe,     0xff,
+                         0x100,      0xffff,     0x10000,  0x7ffffffe,
+                         0x7fffffff, 0x70f0f0f0, 0xf0f0f0f};
+    const VectorType expected{0, 1, 7, 8, 1, 16, 1, 30, 31, 15, 16};
     const auto actual = popcount_cpp_integer(arg);
     EXPECT_TRUE(are_equal(expected, actual));
 }
 
 TEST_F(TestPopcount, NAs) {
     // Check NA values
-    const rCppSample::IntegerVector arg{2, rCppSample::NaInteger, 14,
-                                        rCppSample::NaInteger, 62};
-    const rCppSample::IntegerVector expected{1, rCppSample::NaInteger, 3,
-                                             rCppSample::NaInteger, 5};
+    using VectorType = rCppSample::IntegerVector;
+    const VectorType arg{2, rCppSample::NaInteger, 14, rCppSample::NaInteger,
+                         62};
+    const VectorType expected{1, rCppSample::NaInteger, 3,
+                              rCppSample::NaInteger, 5};
     const auto actual = popcount_cpp_integer(arg);
     EXPECT_TRUE(are_equal(expected, actual));
 }
@@ -246,19 +251,21 @@ TEST_F(TestPopcount, NegativeIntegerValues) {
     // Check negative int32 values
     // 0xffffffff, 0xfffffffe, 0xff0f0f0f, 0xf0f0f0f0, 0x80000001
     // Note that 0x80000000 is treated as NA in R
-    const rCppSample::IntegerVector arg{-1, -2, -15790321, -252645136,
-                                        -2147483647};
-    const rCppSample::IntegerVector expected{32, 31, 20, 16, 2};
+    using VectorType = rCppSample::IntegerVector;
+    const VectorType arg{-1, -2, -15790321, -252645136, -2147483647};
+    const VectorType expected{32, 31, 20, 16, 2};
     const auto actual = popcount_cpp_integer(arg);
     EXPECT_TRUE(are_equal(expected, actual));
 }
 
 TEST_F(TestPopcount, FullRawValues) {
     // Check all uint8 values
-    size_t element_size = 256;
-    size_t set_size = 1024;
-    size_t array_size = element_size * set_size;
-    rCppSample::RawVector arg(array_size);
+    using ArgVectorType = rCppSample::RawVector;
+    using SizeType = typename VectorSize<ArgVectorType>::size_type;
+    SizeType element_size = 256;
+    SizeType set_size = 1024;
+    SizeType array_size = element_size * set_size;
+    ArgVectorType arg(array_size);
     rCppSample::IntegerVector expected(array_size);
 
     using Element = uint8_t;
@@ -269,6 +276,7 @@ TEST_F(TestPopcount, FullRawValues) {
         low_value &= mask_value;
         auto element = static_cast<Element>(low_value);
         arg.at(index) = element;
+
         for (size_t bit_index{0}; bit_index < (sizeof(Element) * 8);
              ++bit_index) {
             decltype(low_value) mask = 1;
@@ -302,7 +310,7 @@ int main(int argc, char *argv[]) {
     R_ReplDLLdo1();
 
     ::testing::InitGoogleTest(&argc, argv);
-    auto result = RUN_ALL_TESTS();
+    const auto result = RUN_ALL_TESTS();
     Rf_endEmbeddedR(0);
     return result;
 }

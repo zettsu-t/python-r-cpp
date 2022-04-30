@@ -47,8 +47,14 @@ include(GoogleTest)
 set(BASEPATH "${CMAKE_SOURCE_DIR}")
 include_directories("${BASEPATH}" "${BASEPATH}/../src")
 
-# Executable unit tests
+# Executable unit tests with Rcpp
 add_compile_options(-DSTRICT_R_HEADERS -Wall -Wextra -Wconversion -Wformat=2 -Wcast-qual -Wcast-align -Wwrite-strings -Wfloat-equal -Wpointer-arith -Wno-unused-parameter)
 add_executable(test_popcount ../src/popcount.cpp test_popcount.cpp)
 target_link_libraries(test_popcount "${R_LIBRARY}" gtest_main)
 gtest_add_tests(TARGET test_popcount)
+
+# Executable unit tests without Rcpp
+add_compile_options(-DSTRICT_R_HEADERS -DUNIT_TEST_CPP -Wall -Wextra -Wconversion -Wformat=2 -Wcast-qual -Wcast-align -Wwrite-strings -Wfloat-equal -Wpointer-arith -Wno-unused-parameter)
+add_executable(test_popcount_std ../src/popcount.cpp test_popcount.cpp)
+target_link_libraries(test_popcount_std "${R_LIBRARY}" gtest_main)
+gtest_add_tests(TARGET test_popcount_std TEST_SUFFIX _Std)

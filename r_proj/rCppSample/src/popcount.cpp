@@ -9,6 +9,7 @@ template <typename T> bool is_na_integer(const T &x) {
 #endif // UNIT_TEST_CPP
 }
 
+// Cannot use constexpr for NA_INTEGER
 int get_na_value() {
 #ifdef UNIT_TEST_CPP
     return rCppSample::NaInteger;

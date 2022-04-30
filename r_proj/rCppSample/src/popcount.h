@@ -20,8 +20,6 @@ constexpr int NaInteger = std::numeric_limits<int>::min();
 #else  // UNIT_TEST_CPP
 using IntegerVector = Rcpp::IntegerVector;
 using RawVector = Rcpp::RawVector;
-using ArgIntegerVector = Rcpp::IntegerVector;
-using ArgRawVector = Rcpp::RawVector;
 const int NaInteger = NA_INTEGER;
 #endif // UNIT_TEST_CPP
 } // namespace rCppSample
