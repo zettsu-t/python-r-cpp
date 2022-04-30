@@ -142,7 +142,7 @@ std::vector<Count> setup_popcount(SizeType array_size, SizeType value_offset,
         auto low_value = index + value_offset;
         constexpr auto mask_value = static_cast<decltype(low_value)>(max_value);
         low_value &= mask_value;
-        auto element = static_cast<Element>(low_value);
+        const auto element = static_cast<Element>(low_value);
         ptr[index] = element;
 
         for (size_t bit_index{0}; bit_index < (sizeof(low_value) * 8);
@@ -169,13 +169,13 @@ template <typename T, typename U>
 bool are_equal(const T &expected, const U &actual) {
     // Callers must guarantee the expected and the actual
     // have a common size.
-    auto buffer = actual.request();
+    const auto buffer = actual.request();
     if (buffer.ndim != 1) {
         return false;
     }
 
     auto actual_size = buffer.shape.at(0);
-    auto expected_size = expected.size();
+    const auto expected_size = expected.size();
     if (expected_size != static_cast<decltype(expected_size)>(actual_size)) {
         return false;
     }
@@ -188,15 +188,26 @@ bool are_equal(const T &expected, const U &actual) {
     return matched;
 }
 
+template <typename T, typename U>
+bool are_equal_boost_numpy(const T &expected, const U &actual) {
+    if (!check_count_type_boost(actual, expected.size())) {
+        return false;
+    }
+
+    // Assuming the actual is a C-like dense array
+    const Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
+    return std::equal(expected.begin(), expected.end(), actual_counts);
+}
+
 template <typename T, typename U> void copy_array(const T &src, U &dst) {
     // Callers must guarantee the expected and the actual
     // have a common size.
-    auto buffer = dst.request();
+    const auto buffer = dst.request();
     if (buffer.ndim != 1) {
         return;
     }
 
-    auto dst_size = buffer.shape.at(0);
+    const auto dst_size = buffer.shape.at(0);
     auto src_size = src.size();
     if (src_size != static_cast<decltype(src_size)>(dst_size)) {
         return;
@@ -233,20 +244,22 @@ TEST_F(TestHelper, AreEqual) {
     const Expected expected_one{1};
     const Expected expected_one_alt{4};
     const Expected expected_many{2, 3, 5};
+    const Expected expected_many_same{2, 3, 5};
     const Expected expected_many_alt{2, 3, 6};
 
     // Set shapes and elements
-    Actual actual_empty({0});
+    const Actual actual_empty({0});
     Actual actual_one({1});
     *actual_one.mutable_data(0) = expected_one.at(0);
 
-    PyBindSize array_size = 3;
+    constexpr PyBindSize array_size = 3;
     Actual actual_many({array_size});
     copy_array(expected_many, actual_many);
 
     EXPECT_TRUE(are_equal(expected_empty, actual_empty));
     EXPECT_TRUE(are_equal(expected_one, actual_one));
     EXPECT_TRUE(are_equal(expected_many, actual_many));
+    EXPECT_TRUE(are_equal(expected_many_same, actual_many));
 
     EXPECT_FALSE(are_equal(expected_empty, actual_one));
     EXPECT_FALSE(are_equal(expected_many, actual_empty));
@@ -255,6 +268,57 @@ TEST_F(TestHelper, AreEqual) {
 
     *actual_many.mutable_data(2) = expected_many_alt.at(2);
     EXPECT_FALSE(are_equal(expected_many, actual_many));
+};
+
+namespace {
+template <typename T, typename U>
+bool copy_to_boost_numpy(const T &src, U &dst) {
+    if (dst.get_nd() != 1) {
+        return false;
+    }
+
+    auto src_size = src.size();
+    const auto dst_size = static_cast<decltype(src_size)>(dst.shape(0));
+    if (src_size != dst_size) {
+        return false;
+    }
+
+    auto *pDst = reinterpret_cast<Count *>(dst.get_data());
+    std::copy(src.begin(), src.end(), pDst);
+    return true;
+}
+} // namespace
+
+TEST_F(TestHelper, AreEqualBoostNumpy) {
+    using Expected = std::vector<Count>;
+    const boost::python::numpy::dtype data_type =
+        boost::python::numpy::dtype::get_builtin<Count>();
+
+    const Expected expected{2, 3, 5};
+    const Expected expected_alt{2, 3, 6};
+    const Expected expected_empty;
+    const Expected expected_many{2, 3, 5, 8};
+
+    const auto shape = boost::python::make_tuple(expected.size());
+    const auto shape_empty = boost::python::make_tuple(0);
+    const auto shape_many = boost::python::make_tuple(expected_many.size());
+
+    auto actual = boost::python::numpy::zeros(shape, data_type);
+    auto actual_alt = boost::python::numpy::zeros(shape, data_type);
+    auto actual_empty = boost::python::numpy::zeros(shape_empty, data_type);
+    auto actual_many = boost::python::numpy::zeros(shape_many, data_type);
+
+    ASSERT_TRUE(copy_to_boost_numpy(expected, actual));
+    ASSERT_TRUE(copy_to_boost_numpy(expected_alt, actual_alt));
+    ASSERT_TRUE(copy_to_boost_numpy(expected_many, actual_many));
+
+    EXPECT_TRUE(are_equal_boost_numpy(expected, actual));
+    EXPECT_FALSE(are_equal_boost_numpy(expected_alt, actual));
+    EXPECT_FALSE(are_equal_boost_numpy(expected_empty, actual));
+    EXPECT_FALSE(are_equal_boost_numpy(expected_many, actual));
+    EXPECT_FALSE(are_equal_boost_numpy(expected, actual_alt));
+    EXPECT_FALSE(are_equal_boost_numpy(expected, actual_empty));
+    EXPECT_FALSE(are_equal_boost_numpy(expected, actual_many));
 };
 
 TEST_F(TestHelper, CopyArray) {
@@ -302,7 +366,7 @@ TEST_F(TestPopcountPybind11, Strides) {
     using Element = uint64_t;
     constexpr PyBindSize nrow = 3;
     constexpr PyBindSize ncol = 63;
-    pybind11::array_t<Element, pybind11::array::c_style> arg_row_major(
+    const pybind11::array_t<Element, pybind11::array::c_style> arg_row_major(
         {nrow, ncol});
     const auto buffer_row_major = arg_row_major.request();
 
@@ -311,7 +375,7 @@ TEST_F(TestPopcountPybind11, Strides) {
     ASSERT_LE(sizeof(Element) * ncol, buffer_row_major.strides.at(0));
     ASSERT_EQ(sizeof(Element), buffer_row_major.strides.at(1));
 
-    pybind11::array_t<Element, pybind11::array::f_style> arg_column_major(
+    const pybind11::array_t<Element, pybind11::array::f_style> arg_column_major(
         {nrow, ncol});
     const auto buffer_column_major = arg_column_major.request();
 
@@ -322,17 +386,17 @@ TEST_F(TestPopcountPybind11, Strides) {
 }
 
 TEST_F(TestPopcountBoost, InvalidDimension) {
-    BoostArrayShape shape = boost::python::make_tuple(2, 3);
-    BoostDataType data_type = create_numpy_data_type_boost<uint8_t>();
-    auto arg = boost::python::numpy::zeros(shape, data_type);
+    const BoostArrayShape shape = boost::python::make_tuple(2, 3);
+    const BoostDataType data_type = create_numpy_data_type_boost<uint8_t>();
+    const auto arg = boost::python::numpy::zeros(shape, data_type);
     ASSERT_THROW(py_cpp_sample::popcount_cpp_boost(arg), std::runtime_error);
 }
 
 TEST_F(TestPopcountBoost, InvalidElemenyType) {
     constexpr size_t size = 1;
-    BoostArrayShape shape = boost::python::make_tuple(size);
-    BoostDataType data_type = create_numpy_data_type_boost<uint16_t>();
-    auto arg = boost::python::numpy::zeros(shape, data_type);
+    const BoostArrayShape shape = boost::python::make_tuple(size);
+    const BoostDataType data_type = create_numpy_data_type_boost<uint16_t>();
+    const auto arg = boost::python::numpy::zeros(shape, data_type);
     ASSERT_THROW(py_cpp_sample::popcount_cpp_boost(arg), std::runtime_error);
 }
 
@@ -375,9 +439,9 @@ TYPED_TEST(TestPopcountTyped, ArraySizeBoost) {
 
     // Empty arrays are acceptable
     for (size_t array_size{0}; array_size < 3; ++array_size) {
-        BoostArrayShape shape = boost::python::make_tuple(array_size);
-        BoostDataType data_type = create_numpy_data_type_boost<Element>();
-        auto arg = boost::python::numpy::zeros(shape, data_type);
+        const BoostArrayShape shape = boost::python::make_tuple(array_size);
+        const BoostDataType data_type = create_numpy_data_type_boost<Element>();
+        const auto arg = boost::python::numpy::zeros(shape, data_type);
 
         ASSERT_EQ(1, arg.get_nd());
         ASSERT_EQ(array_size, arg.shape(0));
@@ -396,7 +460,7 @@ TYPED_TEST(TestPopcountTyped, ArraySizeBoost) {
 
 TEST_F(TestPopcountPybind11, ValuesUint8) {
     using Element = uint8_t;
-    auto array_size = Expected_Uint8.size();
+    const auto array_size = Expected_Uint8.size();
     ASSERT_EQ(array_size, Input_Uint8.size());
 
     const auto arg_array_size = static_cast<PyBindSize>(array_size);
@@ -412,11 +476,11 @@ TEST_F(TestPopcountPybind11, ValuesUint8) {
 
 TEST_F(TestPopcountBoost, ValuesUint8) {
     using Element = uint8_t;
-    auto array_size = Expected_Uint8.size();
+    const auto array_size = Expected_Uint8.size();
     ASSERT_EQ(array_size, Input_Uint8.size());
 
-    BoostArrayShape shape = boost::python::make_tuple(array_size);
-    BoostDataType data_type = create_numpy_data_type_boost<Element>();
+    const BoostArrayShape shape = boost::python::make_tuple(array_size);
+    const BoostDataType data_type = create_numpy_data_type_boost<Element>();
     auto arg = boost::python::numpy::zeros(shape, data_type);
     ASSERT_TRUE(check_numpy_array_type_boost<Element>(arg, array_size));
 
@@ -424,15 +488,12 @@ TEST_F(TestPopcountBoost, ValuesUint8) {
     std::copy(Input_Uint8.begin(), Input_Uint8.end(), arg_values);
     const auto actual = py_cpp_sample::popcount_cpp_boost(arg);
     ASSERT_TRUE(check_count_type_boost(actual, array_size));
-
-    const Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
-    ASSERT_TRUE(std::equal(Expected_Uint8.begin(), Expected_Uint8.end(),
-                           actual_counts));
+    ASSERT_TRUE(are_equal_boost_numpy(Expected_Uint8, actual));
 }
 
 TEST_F(TestPopcountPybind11, ValuesUint64) {
     using Element = uint64_t;
-    auto array_size = Expected_Uint64.size();
+    const auto array_size = Expected_Uint64.size();
     ASSERT_EQ(array_size, Input_Uint64.size());
 
     const auto arg_array_size = static_cast<PyBindSize>(array_size);
@@ -448,11 +509,11 @@ TEST_F(TestPopcountPybind11, ValuesUint64) {
 
 TEST_F(TestPopcountBoost, ValuesUint64) {
     using Element = uint64_t;
-    auto array_size = Expected_Uint64.size();
+    const auto array_size = Expected_Uint64.size();
     ASSERT_EQ(array_size, Input_Uint64.size());
 
-    BoostArrayShape shape = boost::python::make_tuple(array_size);
-    BoostDataType data_type = create_numpy_data_type_boost<Element>();
+    const BoostArrayShape shape = boost::python::make_tuple(array_size);
+    const BoostDataType data_type = create_numpy_data_type_boost<Element>();
     auto arg = boost::python::numpy::zeros(shape, data_type);
     ASSERT_TRUE(check_numpy_array_type_boost<Element>(arg, array_size));
 
@@ -460,18 +521,15 @@ TEST_F(TestPopcountBoost, ValuesUint64) {
     std::copy(Input_Uint64.begin(), Input_Uint64.end(), arg_values);
     const auto actual = py_cpp_sample::popcount_cpp_boost(arg);
     ASSERT_TRUE(check_count_type_boost(actual, array_size));
-
-    const Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
-    ASSERT_TRUE(std::equal(Expected_Uint64.begin(), Expected_Uint64.end(),
-                           actual_counts));
+    ASSERT_TRUE(are_equal_boost_numpy(Expected_Uint64, actual));
 }
 
 TEST_F(TestPopcountPybind11, FullValuesUint8) {
     using Element = uint8_t;
-    size_t element_size = 256;
-    size_t set_size = 1024;
-    size_t array_size = element_size * set_size;
-    const auto arg_array_size = static_cast<PyBindSize>(array_size);
+    constexpr size_t element_size = 256;
+    constexpr size_t set_size = 1024;
+    constexpr size_t array_size = element_size * set_size;
+    constexpr auto arg_array_size = static_cast<PyBindSize>(array_size);
 
     PyUint8Array arg({arg_array_size});
     ASSERT_TRUE(check_numpy_array_type_pybind11<Element>(arg, array_size));
@@ -479,8 +537,8 @@ TEST_F(TestPopcountPybind11, FullValuesUint8) {
 
     const auto buffer = arg.request();
     auto arg_values = static_cast<Element *>(buffer.ptr);
-    decltype(array_size) value_offset{0};
-    auto expected =
+    constexpr decltype(array_size) value_offset{0};
+    const auto expected =
         setup_popcount<Element>(array_size, value_offset, arg_values);
     ASSERT_EQ(array_size, expected.size());
 
@@ -493,29 +551,27 @@ TEST_F(TestPopcountBoost, FullValuesUint8) {
     using Element = uint8_t;
     constexpr size_t element_size = 256;
     constexpr size_t set_size = 1024;
-    size_t array_size = element_size * set_size;
+    constexpr size_t array_size = element_size * set_size;
 
-    BoostArrayShape shape = boost::python::make_tuple(array_size);
-    BoostDataType data_type = create_numpy_data_type_boost<Element>();
+    const BoostArrayShape shape = boost::python::make_tuple(array_size);
+    const BoostDataType data_type = create_numpy_data_type_boost<Element>();
     auto arg = boost::python::numpy::zeros(shape, data_type);
     ASSERT_TRUE(check_numpy_array_type_boost<Element>(arg, array_size));
 
     Element *arg_values = reinterpret_cast<Element *>(arg.get_data());
-    decltype(array_size) value_offset{0};
-    auto expected =
+    constexpr decltype(array_size) value_offset{0};
+    const auto expected =
         setup_popcount<Element>(array_size, value_offset, arg_values);
     ASSERT_EQ(array_size, expected.size());
 
     const auto actual = py_cpp_sample::popcount_cpp_boost(arg);
     ASSERT_TRUE(check_count_type_boost(actual, array_size));
-
-    const Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
-    ASSERT_TRUE(std::equal(expected.begin(), expected.end(), actual_counts));
+    ASSERT_TRUE(are_equal_boost_numpy(expected, actual));
 }
 
 TEST_F(TestPopcountPybind11, LargeUint64) {
     using Element = uint64_t;
-    size_t array_size = 0x100;
+    constexpr size_t array_size = 0x100;
     constexpr size_t value_offset = 0x7fffffffffffff00;
     const auto arg_array_size = static_cast<PyBindSize>(array_size);
 
@@ -525,7 +581,7 @@ TEST_F(TestPopcountPybind11, LargeUint64) {
 
     const auto buffer = arg.request();
     auto arg_values = static_cast<Element *>(buffer.ptr);
-    auto expected =
+    const auto expected =
         setup_popcount<Element>(array_size, value_offset, arg_values);
     ASSERT_EQ(array_size, expected.size());
 
@@ -536,24 +592,22 @@ TEST_F(TestPopcountPybind11, LargeUint64) {
 
 TEST_F(TestPopcountBoost, LargeUint64) {
     using Element = uint64_t;
-    size_t array_size = 0x100;
-    size_t value_offset = 0x7ffffffffffffff0;
+    constexpr size_t array_size = 0x100;
+    constexpr size_t value_offset = 0x7ffffffffffffff0;
 
-    BoostArrayShape shape = boost::python::make_tuple(array_size);
-    BoostDataType data_type = create_numpy_data_type_boost<Element>();
+    const BoostArrayShape shape = boost::python::make_tuple(array_size);
+    const BoostDataType data_type = create_numpy_data_type_boost<Element>();
     auto arg = boost::python::numpy::zeros(shape, data_type);
     ASSERT_TRUE(check_numpy_array_type_boost<Element>(arg, array_size));
 
     Element *arg_values = reinterpret_cast<Element *>(arg.get_data());
-    auto expected =
+    const auto expected =
         setup_popcount<Element>(array_size, value_offset, arg_values);
     ASSERT_EQ(array_size, expected.size());
 
     const auto actual = py_cpp_sample::popcount_cpp_boost(arg);
     ASSERT_TRUE(check_count_type_boost(actual, array_size));
-
-    const Count *actual_counts = reinterpret_cast<Count *>(actual.get_data());
-    ASSERT_TRUE(std::equal(expected.begin(), expected.end(), actual_counts));
+    ASSERT_TRUE(are_equal_boost_numpy(expected, actual));
 }
 
 TEST_F(TestPopcountPybind11, BitsUint64) {
@@ -609,7 +663,5 @@ int main(int argc, char *argv[]) {
     // Py_Initialize() and Py_Finalize() in an RAII manner
     pybind11::scoped_interpreter guard{};
     boost::python::numpy::initialize();
-
-    const auto result = RUN_ALL_TESTS();
-    return result;
+    return RUN_ALL_TESTS();
 }

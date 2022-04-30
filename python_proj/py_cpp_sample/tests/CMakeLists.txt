@@ -53,9 +53,3 @@ add_compile_options(-Wall -Wextra -Wconversion -Wformat=2 -Wcast-qual -Wcast-ali
 add_executable(test_popcount ../src/cpp_impl/popcount.cpp ../src/cpp_impl/popcount_impl.cpp ../src/cpp_impl_boost/popcount_boost.cpp ../src/cpp_impl_boost/popcount_impl_boost.cpp test_popcount.cpp)
 target_link_libraries(test_popcount "${Boost_LIBRARIES}" "${PYTHON_LIBRARIES}" gtest_main pthread)
 gtest_add_tests(TARGET test_popcount)
-
-# A C++ library running on Python
-#add_library(py_cpp_sample SHARED ../src/cpp_impl/popcount.cpp ../src/cpp_impl/popcount_impl.cpp)
-#target_compile_options(py_cpp_sample PRIVATE "-DPIC -shared -fPIC")
-#target_link_options(py_cpp_sample PRIVATE "-DPIC -shared -fPIC")
-#target_link_libraries(py_cpp_sample "${Boost_LIBRARIES}")

@@ -24,6 +24,8 @@ EXPECTED_ERROR_SCALAR_MSG = re.compile(EXPECTED_ERROR_SCALAR_STR)
 # Measure to time fo [All uint 8 values * NUMBER_OF_UNIT]
 SIZE_OF_UNIT = 256
 NUMBER_OF_UNIT = 10000
+BENCHMARK_ITERATIONS = 2
+BENCHMARK_ROUND = 100
 
 ArgSet = namedtuple(
     "ArgSet",
@@ -101,7 +103,8 @@ def test_popcount_py_uint8(benchmark):
     """Measure time of the Python implementation 8-bit"""
     args = setup_table(NUMBER_OF_UNIT)
     ret_code = benchmark.pedantic(popcount_py_uint8, kwargs={"args": args},
-                                  iterations=2, rounds=100)
+                                  iterations=BENCHMARK_ITERATIONS,
+                                  rounds=BENCHMARK_ROUND)
     return ret_code
 
 
@@ -109,7 +112,8 @@ def test_popcount_py_uint64(benchmark):
     """Measure time of the Python implementation 64-bit"""
     args = setup_table(NUMBER_OF_UNIT)
     ret_code = benchmark.pedantic(popcount_py_uint64, kwargs={"args": args},
-                                  iterations=2, rounds=100)
+                                  iterations=BENCHMARK_ITERATIONS,
+                                  rounds=BENCHMARK_ROUND)
     return ret_code
 
 
@@ -117,7 +121,8 @@ def test_popcount_cpp_uint8(benchmark):
     """Measure time of the C++ implementation 8-bit using pybind11"""
     args = setup_table(NUMBER_OF_UNIT)
     ret_code = benchmark.pedantic(popcount_cpp_uint8, kwargs={"args": args},
-                                  iterations=2, rounds=100)
+                                  iterations=BENCHMARK_ITERATIONS,
+                                  rounds=BENCHMARK_ROUND)
     return ret_code
 
 
@@ -125,7 +130,8 @@ def test_popcount_cpp_uint64(benchmark):
     """Measure time of the implementation 64-bit using pybind11"""
     args = setup_table(NUMBER_OF_UNIT)
     ret_code = benchmark.pedantic(popcount_cpp_uint64, kwargs={"args": args},
-                                  iterations=2, rounds=100)
+                                  iterations=BENCHMARK_ITERATIONS,
+                                  rounds=BENCHMARK_ROUND)
     return ret_code
 
 
@@ -134,7 +140,8 @@ def test_popcount_cpp_uint8_boost(benchmark):
     args = setup_table(NUMBER_OF_UNIT)
     ret_code = benchmark.pedantic(popcount_cpp_uint8_boost,
                                   kwargs={"args": args},
-                                  iterations=2, rounds=100)
+                                  iterations=BENCHMARK_ITERATIONS,
+                                  rounds=BENCHMARK_ROUND)
     return ret_code
 
 
@@ -143,7 +150,8 @@ def test_popcount_cpp_uint64_boost(benchmark):
     args = setup_table(NUMBER_OF_UNIT)
     ret_code = benchmark.pedantic(popcount_cpp_uint64_boost,
                                   kwargs={"args": args},
-                                  iterations=2, rounds=100)
+                                  iterations=BENCHMARK_ITERATIONS,
+                                  rounds=BENCHMARK_ROUND)
     return ret_code
 
 
@@ -181,7 +189,7 @@ def test_empty_array(target_func, dtype):
     """Empty"""
     arg = np.array([], dtype=dtype)
     actual = target_func(arg)
-    assert isinstance(actual, np.ndarray)
+    assert isinstance(actual, (np.ndarray))
     assert actual.shape == (0,)
 
 
@@ -281,8 +289,8 @@ def test_some_values_uint8(target_func):
     arg = np.array([0, 1, 2, 3, 6, 7, 254, 255], dtype=np.uint8)
     expected = np.array([0, 1, 1, 2, 2, 3, 7, 8], dtype=np.uint8)
     actual = target_func(arg)
-    assert isinstance(actual, np.ndarray)
-    assert isinstance(actual[0], np.uint8)
+    assert isinstance(actual, (np.ndarray))
+    assert isinstance(actual[0], (np.uint8))
     assert np.all(actual == expected)
 
 
@@ -298,8 +306,8 @@ def test_some_values_uint64(target_func):
         [0, 1, 7, 8, 1, 2, 15, 16, 1, 2, 31, 32, 1, 2, 32, 32, 64],
         dtype=np.uint8)
     actual = target_func(arg)
-    assert isinstance(actual, np.ndarray)
-    assert isinstance(actual[0], np.uint8)
+    assert isinstance(actual, (np.ndarray))
+    assert isinstance(actual[0], (np.uint8))
     assert np.all(actual == expected)
 
 
