@@ -8,6 +8,35 @@
 #include <Rembedded.h>
 #include <Rinterface.h>
 
+#ifndef UNIT_TEST_CPP
+class TestMatrix : public ::testing::Test {};
+
+TEST_F(TestMatrix, Shape) {
+    using Element = double;
+    constexpr int nrow = 63;
+    constexpr int ncol = 3;
+    Rcpp::NumericMatrix m(nrow, ncol);
+
+    Element &left_top = m(0, 0);
+    Element &right = m(0, 1);
+    Element &down = m(1, 0);
+
+    const auto ptrdiff_right = std::addressof(right) - std::addressof(left_top);
+    const auto ptrdiff_down = std::addressof(down) - std::addressof(left_top);
+    ASSERT_LE(nrow, ptrdiff_right);
+    ASSERT_EQ(1, ptrdiff_down);
+
+    const auto addrdiff_right =
+        reinterpret_cast<uintptr_t>(std::addressof(right)) -
+        reinterpret_cast<uintptr_t>(std::addressof(left_top));
+    const auto addrdiff_down =
+        reinterpret_cast<uintptr_t>(std::addressof(down)) -
+        reinterpret_cast<uintptr_t>(std::addressof(left_top));
+    ASSERT_LE(sizeof(Element) * nrow, addrdiff_right);
+    ASSERT_EQ(sizeof(Element), addrdiff_down);
+}
+#endif // UNIT_TEST_CPP
+
 namespace {
 template <typename T, typename U>
 bool are_equal(const T &expected, const U &actual) {
@@ -175,35 +204,6 @@ TEST_F(TestStrnpy, NullBuffer) {
     }
 }
 
-class TestMatrix : public ::testing::Test {};
-
-#ifndef UNIT_TEST_CPP
-TEST_F(TestMatrix, Shape) {
-    using Element = double;
-    constexpr int nrow = 63;
-    constexpr int ncol = 3;
-    Rcpp::NumericMatrix m(nrow, ncol);
-
-    Element &left_top = m(0, 0);
-    Element &right = m(0, 1);
-    Element &down = m(1, 0);
-
-    const auto ptrdiff_right = std::addressof(right) - std::addressof(left_top);
-    const auto ptrdiff_down = std::addressof(down) - std::addressof(left_top);
-    ASSERT_LE(nrow, ptrdiff_right);
-    ASSERT_EQ(1, ptrdiff_down);
-
-    const auto addrdiff_right =
-        reinterpret_cast<uintptr_t>(std::addressof(right)) -
-        reinterpret_cast<uintptr_t>(std::addressof(left_top));
-    const auto addrdiff_down =
-        reinterpret_cast<uintptr_t>(std::addressof(down)) -
-        reinterpret_cast<uintptr_t>(std::addressof(left_top));
-    ASSERT_LE(sizeof(Element) * nrow, addrdiff_right);
-    ASSERT_EQ(sizeof(Element), addrdiff_down);
-}
-#endif // UNIT_TEST_CPP
-
 class TestPopcount : public ::testing::Test {};
 
 TEST_F(TestPopcount, Size) {
@@ -262,6 +262,7 @@ TEST_F(TestPopcount, FullRawValues) {
     // Check all uint8 values
     using ArgVectorType = rCppSample::RawVector;
     using SizeType = typename VectorSize<ArgVectorType>::size_type;
+    using IndexType = size_t;
     SizeType element_size = 256;
     SizeType set_size = 1024;
     SizeType array_size = element_size * set_size;
@@ -275,13 +276,14 @@ TEST_F(TestPopcount, FullRawValues) {
         constexpr auto mask_value = static_cast<decltype(low_value)>(max_value);
         low_value &= mask_value;
         auto element = static_cast<Element>(low_value);
-        arg.at(index) = element;
+        const auto array_index = static_cast<IndexType>(index);
+        arg.at(array_index) = element;
 
         for (size_t bit_index{0}; bit_index < (sizeof(Element) * 8);
              ++bit_index) {
             decltype(low_value) mask = 1;
             mask <<= bit_index;
-            expected.at(index) += ((low_value & mask) != 0);
+            expected.at(array_index) += ((low_value & mask) != 0);
         }
     }
 

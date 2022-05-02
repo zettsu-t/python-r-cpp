@@ -35,19 +35,19 @@ jobs:
 
       - name: Download Boost C++ libraries
         run: |
-          sudo wget https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/boost_1_78_0.tar.gz
-          sudo tar xzf boost_1_78_0.tar.gz
+          sudo wget https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/boost_1_79_0.tar.gz
+          sudo tar xzf boost_1_79_0.tar.gz
 
       - name: Install Boost C++ libraries
-        working-directory: ./boost_1_78_0
+        working-directory: ./boost_1_79_0
         run: |
           sudo ./bootstrap.sh --with-libraries=python --with-python=python3.8 --with-python-version=3.8
-          sudo ./b2 install cxxflags=-fPIC address-model=64 threading=multi link=static,shared runtime-link=static variant=release -j4 --prefix=/opt/boost_1_78_0
-          sudo test -d /opt/boost || ln -s /opt/boost_1_78_0 /opt/boost
-          sudo test -f "/opt/boost_1_78_0/lib/libboost_python.a" || ln -s "/opt/boost_1_78_0/lib/libboost_python38.a" "/opt/boost_1_78_0/lib/libboost_python.a"
-          sudo test -f "/opt/boost_1_78_0/lib/libboost_numpy.a" || ln -s "/opt/boost_1_78_0/lib/libboost_numpy38.a" "/opt/boost_1_78_0/lib/libboost_numpy.a"
-          sudo test -f "/opt/boost_1_78_0/lib/libboost_python.so" || ln -s "/opt/boost_1_78_0/lib/libboost_python38.so" "/opt/boost_1_78_0/lib/libboost_python.so"
-          sudo test -f "/opt/boost_1_78_0/lib/libboost_numpy.so" || ln -s "/opt/boost_1_78_0/lib/libboost_numpy38.so" "/opt/boost_1_78_0/lib/libboost_numpy.so"
+          sudo ./b2 install cxxflags=-fPIC address-model=64 threading=multi link=static,shared runtime-link=static variant=release -j4 --prefix=/opt/boost_1_79_0
+          sudo test -d /opt/boost || ln -s /opt/boost_1_79_0 /opt/boost
+          sudo test -f "/opt/boost_1_79_0/lib/libboost_python.a" || ln -s "/opt/boost_1_79_0/lib/libboost_python38.a" "/opt/boost_1_79_0/lib/libboost_python.a"
+          sudo test -f "/opt/boost_1_79_0/lib/libboost_numpy.a" || ln -s "/opt/boost_1_79_0/lib/libboost_numpy38.a" "/opt/boost_1_79_0/lib/libboost_numpy.a"
+          sudo test -f "/opt/boost_1_79_0/lib/libboost_python.so" || ln -s "/opt/boost_1_79_0/lib/libboost_python38.so" "/opt/boost_1_79_0/lib/libboost_python.so"
+          sudo test -f "/opt/boost_1_79_0/lib/libboost_numpy.so" || ln -s "/opt/boost_1_79_0/lib/libboost_numpy38.so" "/opt/boost_1_79_0/lib/libboost_numpy.so"
 
       - name: Install python package dependencies
         continue-on-error: true

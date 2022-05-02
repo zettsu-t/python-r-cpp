@@ -7,8 +7,8 @@ RUN curl -O https://bootstrap.pypa.io/get-pip.py
 RUN python3.8 get-pip.py
 RUN pip install autopep8 check-manifest coverage find_libpython flake8 mypy numpy pep8 pipenv pybind11 pybind11-global pylint pytest pytest-benchmark pytest-cov py_pkg sphinx sphinx_rtd_theme types-requests
 
-ENV BOOST_VERSION="boost_1_78_0"
-RUN wget "https://boostorg.jfrog.io/artifactory/main/release/1.78.0/source/${BOOST_VERSION}.tar.gz"
+ENV BOOST_VERSION="boost_1_79_0"
+RUN wget "https://boostorg.jfrog.io/artifactory/main/release/1.79.0/source/${BOOST_VERSION}.tar.gz"
 RUN tar xzf "${BOOST_VERSION}.tar.gz"
 RUN cd "${BOOST_VERSION}" && ./bootstrap.sh --with-libraries=python --with-python=python3.8 && ./b2 install cxxflags=-fPIC address-model=64 threading=multi link=static,shared runtime-link=static variant=release -j4 "--prefix=/opt/${BOOST_VERSION}"
 RUN test -d /opt/boost || ln -s "/opt/${BOOST_VERSION}" /opt/boost

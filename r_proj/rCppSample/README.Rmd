@@ -69,7 +69,7 @@ styler::style_pkg()
 mkdir -p tests/build
 cd tests/build
 cmake ..
-make
+make VERBOSE=1
 make test
 cd ~/work/rCppSample/tests/build/CMakeFiles/test_popcount.dir
 lcov -d . -c -o coverage.info

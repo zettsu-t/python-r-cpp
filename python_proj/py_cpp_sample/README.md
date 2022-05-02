@@ -88,7 +88,7 @@ find . -maxdepth 3 -name "*.py" -print0 | xargs --null -I '{}' sh -c 'diff --uni
 mkdir -p tests/build
 cd tests/build
 cmake ..
-make
+make VERBOSE=1
 make test
 cd CMakeFiles/test_popcount.dir
 lcov -d . -c -o coverage.info
