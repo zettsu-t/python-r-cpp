@@ -24,4 +24,7 @@ RUN chmod ugo+w /usr/lib/python3.8/site-packages
 
 RUN adduser pydev
 USER pydev
+COPY python_path.txt /home/pydev/python_path.txt
+RUN { cat /home/pydev/python_path.txt >> /home/pydev/.bashrc ; } && rm /home/pydev/python_path.txt
+
 CMD tail -f /dev/null
