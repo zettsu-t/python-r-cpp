@@ -46,11 +46,10 @@ include(GoogleTest)
 # Include header files
 set(BASEPATH "${CMAKE_SOURCE_DIR}")
 set(COMMON_INCLUDE_DIRECTORIES "${BASEPATH}" "${BASEPATH}/../src")
+set(COMMON_COMPILE_OPTIONS -DSTRICT_R_HEADERS -Wall -Wextra -Wconversion -Wformat=2 -Wcast-qual -Wcast-align -Wwrite-strings -Wfloat-equal -Wpointer-arith -Wno-unused-parameter)
 
 # Executable unit tests with Rcpp
-set(COMMON_COMPILE_OPTIONS -DSTRICT_R_HEADERS -Wall -Wextra -Wconversion -Wformat=2 -Wcast-qual -Wcast-align -Wwrite-strings -Wfloat-equal -Wpointer-arith -Wno-unused-parameter)
 add_executable(test_popcount ../src/popcount.cpp test_popcount.cpp)
-
 target_compile_options(test_popcount PRIVATE ${COMMON_COMPILE_OPTIONS})
 target_include_directories(test_popcount SYSTEM PRIVATE ${R_INCLUDES_DIRS})
 target_include_directories(test_popcount PRIVATE ${COMMON_INCLUDE_DIRECTORIES})

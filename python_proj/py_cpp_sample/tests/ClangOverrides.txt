@@ -5,5 +5,4 @@
 include(CMakeForceCompiler)
 set(CMAKE_C_COMPILER "/usr/bin/clang")
 set(CMAKE_CXX_COMPILER "/usr/bin/clang++")
-set(CMAKE_CXX_FLAGS_INIT "-Wall -Wextra -Wconversion -Wformat=2 -Wcast-qual -Wcast-align -Wwrite-strings -Wfloat-equal -Wpointer-arith -Wno-unused-parameter")
 set(CMAKE_CXX_FLAGS_DEBUG_INIT "-g -O0 -fsanitize=undefined,address")

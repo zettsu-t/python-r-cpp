@@ -18,7 +18,7 @@ set(Boost_USE_STATIC_RUNTIME ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_NO_SYSTEM_PATHS TRUE)
 set(BOOST_ROOT "/opt/boost")
-find_package(Boost 1.78 REQUIRED COMPONENTS python numpy)
+find_package(Boost REQUIRED COMPONENTS python numpy)
 
 # Use Google Test
 # Based on
