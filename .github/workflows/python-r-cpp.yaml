@@ -130,7 +130,7 @@ jobs:
           sphinx-quickstart -q -p py_cpp_sample -a "Author's name"
           patch < patch/conf.py.diff
           patch < patch/index.rst.diff
-          export PYTHONPATH=src; make html; unset PYTHONPATH
+          make html
 
       - name: Make documents for C++ code in the Python package
         continue-on-error: true

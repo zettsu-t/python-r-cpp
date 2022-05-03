@@ -140,7 +140,7 @@ patch < patch/index.rst.diff
 and run `make`.
 
 ```bash
-export PYTHONPATH=src; make html; unset PYTHONPATH
+make html
 ```
 
 ### C++ code

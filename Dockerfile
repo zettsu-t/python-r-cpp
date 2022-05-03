@@ -38,6 +38,41 @@ RUN rm -rf "${R_PROJECT_DIR}/tests/build" && rm -rf "${PYTHON_PROJECT_DIR}/tests
 WORKDIR "${PROJECTS_TOP_DIR}"
 RUN Rscript "${PROJECTS_TOP_DIR}/r_proj/tests/measure_cloc.R"
 
+## Testing a Python package
+WORKDIR "${PYTHON_PROJECT_DIR}"
+RUN python3.8 setup.py bdist_wheel && pip3 install --force --user dist/py_cpp_sample-0.0.1-cp38-cp38-linux_x86_64.whl && pytest tests && { find build -name "*.so" | xargs objdump -d -M intel | grep -i popcnt ; } && flake8 --exclude tests/build src tests setup.py && pylint src tests setup.py && mypy src
+
+RUN pip3 install --force --user -e . && { PYTHONPATH=src; pytest --cov=src --cov=tests --cov-report=html tests; unset PYTHONPATH ; } && coverage report -m && coverage html
+
+RUN rm -rf "${PYTHON_PROJECT_DIR}/tests/build" && mkdir -p "${PYTHON_PROJECT_DIR}/tests/build"
+WORKDIR "${PYTHON_PROJECT_DIR}/tests/build"
+RUN cmake .. && make && make test
+
+WORKDIR "${PYTHON_PROJECT_DIR}/tests/build/CMakeFiles/test_popcount.dir"
+RUN lcov -d . -c -o coverage.info && lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info && genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
+
+WORKDIR "${PYTHON_PROJECT_DIR}"
+RUN rm -rf "${PYTHON_PROJECT_DIR}/tests/build" && mkdir -p "${PYTHON_PROJECT_DIR}/tests/build"
+WORKDIR "${PYTHON_PROJECT_DIR}/tests/build"
+RUN { cp "${PYTHON_PROJECT_DIR}/tests/ClangOverrides.txt" "${PYTHON_PROJECT_DIR}/tests/build/" ; } && { CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=ClangOverrides.txt .. ; } && make VERBOSE=1 && make test || ./test_popcount || exit 0
+
+WORKDIR "${PYTHON_PROJECT_DIR}"
+RUN rm -rf "${PYTHON_PROJECT_DIR}/tests/build" && mkdir -p "${PYTHON_PROJECT_DIR}/tests/build"
+WORKDIR "${PYTHON_PROJECT_DIR}/tests/build"
+RUN sed -i -e "s/sanitize=[a-z,]*/sanitize=memory -fno-omit-frame-pointer -fno-optimize-sibling-calls/" "${PYTHON_PROJECT_DIR}/tests/ClangOverrides.txt" && cp "${PYTHON_PROJECT_DIR}/tests/ClangOverrides.txt" "${PYTHON_PROJECT_DIR}/tests/build/" && { CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=ClangOverrides.txt .. ; } && make VERBOSE=1 && make test || ./test_popcount || exit 0
+
+WORKDIR "${PYTHON_PROJECT_DIR}"
+RUN clang-tidy src/cpp_impl/*.cpp src/cpp_impl_boost/*.cpp tests/*.cpp -checks=perf\* -- -I src/cpp_impl -I src/cpp_impl_boost -I /opt/boost/include -I $(python3.8 -m sysconfig | egrep "\\bINCLUDEPY" | awk '{print $3}' | sed -e 's/"//g') -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
+RUN rm -rf _build/ _static/ _templates/ conf.py index.rst make.bat Makefile; sphinx-quickstart -q -p py_cpp_sample -a "Author's name" && { patch < patch/conf.py.diff ; } && { patch < patch/index.rst.diff ; } && make html
+
+RUN mkdir -p docs
+WORKDIR "${PYTHON_PROJECT_DIR}/docs"
+RUN doxygen -g
+
+RUN patch < ../patch/Doxyfile.diff
+RUN doxygen
+WORKDIR  "${PROJECTS_TOP_DIR}"
+
 ## Testing an R package
 WORKDIR "${PROJECTS_TOP_DIR}/r_proj"
 RUN R CMD build rCppSample && R CMD INSTALL rCppSample_0.0.0.9000.tar.gz
@@ -66,41 +101,3 @@ RUN sed -i -e "s/sanitize=[a-z,]*/sanitize=memory -fno-omit-frame-pointer -fno-o
 
 WORKDIR "${R_PROJECT_DIR}"
 RUN { echo "-I $(find /usr -name R.h | head -1 | xargs dirname)" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/Rcpp/include"), sep="", collapse=" "))')" "$(Rscript -e 'cat(paste(paste0(" -I ", .libPaths(), "/testthat/include"), sep="", collapse=" "))')" > _r_includes ; } && { clang-tidy src/*.cpp tests/*.cpp -checks=perf\* -- -I src $(cat _r_includes) -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code" ; }
-
-## Testing a Python package
-WORKDIR "${PYTHON_PROJECT_DIR}"
-RUN python3.8 setup.py bdist_wheel && pip3 install --force --user dist/py_cpp_sample-0.0.1-cp38-cp38-linux_x86_64.whl && pytest tests && { find build -name "*.so" | xargs objdump -d -M intel | grep -i popcnt ; } && flake8 --exclude tests/build src tests setup.py && pylint src tests setup.py && mypy src
-
-RUN pip3 install --force --user -e . && { PYTHONPATH=src; pytest --cov=src --cov=tests --cov-report=html tests; unset PYTHONPATH ; } && coverage report -m && coverage html
-
-RUN rm -rf "${PYTHON_PROJECT_DIR}/tests/build" && mkdir -p "${PYTHON_PROJECT_DIR}/tests/build"
-WORKDIR "${PYTHON_PROJECT_DIR}/tests/build"
-RUN cmake .. && make && make test
-
-WORKDIR "${PYTHON_PROJECT_DIR}/tests/build/CMakeFiles/test_popcount.dir"
-RUN lcov -d . -c -o coverage.info && lcov -r coverage.info "/usr/*" "*/googletest/*" "/opt/boost*" -o coverageFiltered.info && genhtml -o lcovHtml --num-spaces 4 -s --legend coverageFiltered.info
-
-WORKDIR "${PYTHON_PROJECT_DIR}"
-RUN rm -rf "${PYTHON_PROJECT_DIR}/tests/build" && mkdir -p "${PYTHON_PROJECT_DIR}/tests/build"
-WORKDIR "${PYTHON_PROJECT_DIR}/tests/build"
-RUN { cp "${PYTHON_PROJECT_DIR}/tests/ClangOverrides.txt" "${PYTHON_PROJECT_DIR}/tests/build/" ; } && { CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=ClangOverrides.txt .. ; } && make VERBOSE=1 && make test || ./test_popcount || exit 0
-
-WORKDIR "${PYTHON_PROJECT_DIR}"
-RUN rm -rf "${PYTHON_PROJECT_DIR}/tests/build" && mkdir -p "${PYTHON_PROJECT_DIR}/tests/build"
-WORKDIR "${PYTHON_PROJECT_DIR}/tests/build"
-RUN sed -i -e "s/sanitize=[a-z,]*/sanitize=memory -fno-omit-frame-pointer -fno-optimize-sibling-calls/" "${PYTHON_PROJECT_DIR}/tests/ClangOverrides.txt" && cp "${PYTHON_PROJECT_DIR}/tests/ClangOverrides.txt" "${PYTHON_PROJECT_DIR}/tests/build/" && { CXX=clang++ CC=clang cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_USER_MAKE_RULES_OVERRIDE=ClangOverrides.txt .. ; } && make VERBOSE=1 && make test || ./test_popcount || exit 0
-
-WORKDIR "${PYTHON_PROJECT_DIR}"
-RUN clang-tidy src/cpp_impl/*.cpp src/cpp_impl_boost/*.cpp tests/*.cpp -checks=perf\* -- -I src/cpp_impl -I src/cpp_impl_boost -I /opt/boost/include -I $(python3.8 -m sysconfig | egrep "\\bINCLUDEPY" | awk '{print $3}' | sed -e 's/"//g') -I tests/build/googletest-src/googletest/include || echo "Non-zero exit code"
-RUN sphinx-quickstart -q -p py_cpp_sample -a "Author's name"
-RUN patch < patch/conf.py.diff
-RUN patch < patch/index.rst.diff
-RUN export PYTHONPATH=src; make html; unset PYTHONPATH
-
-RUN mkdir -p docs
-WORKDIR "${PYTHON_PROJECT_DIR}/docs"
-RUN doxygen -g
-
-RUN patch < ../patch/Doxyfile.diff
-RUN doxygen
-WORKDIR  "${PROJECTS_TOP_DIR}"
