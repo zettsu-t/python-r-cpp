@@ -1,5 +1,4 @@
-#include "popcount.h"
-#include "popcount_boost.h"
+#include "test_popcount.h"
 #include <gtest/gtest.h>
 #include <limits>
 #include <pybind11/embed.h>

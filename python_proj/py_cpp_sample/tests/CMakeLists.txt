@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
 
 project(py_cpp_sample CXX)
@@ -51,4 +51,5 @@ target_compile_options(test_popcount PRIVATE -Wall -Wextra -Wconversion -Wformat
 target_include_directories(test_popcount SYSTEM PRIVATE ${PYTHON_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
 target_include_directories(test_popcount PRIVATE "${BASEPATH}" "${BASEPATH}/../src/cpp_impl" "${BASEPATH}/../src/cpp_impl_boost")
 target_link_libraries(test_popcount "${Boost_LIBRARIES}" "${PYTHON_LIBRARIES}" gtest_main pthread)
+#target_precompile_headers(test_popcount PRIVATE test_popcount.h)
 gtest_add_tests(TARGET test_popcount)

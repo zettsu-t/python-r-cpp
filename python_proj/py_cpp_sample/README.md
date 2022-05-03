@@ -85,6 +85,7 @@ find . -maxdepth 3 -name "*.py" -print0 | xargs --null -I '{}' sh -c 'diff --uni
 ### C++ code
 
 ```bash
+rm -rf tests/build
 mkdir -p tests/build
 cd tests/build
 cmake ..

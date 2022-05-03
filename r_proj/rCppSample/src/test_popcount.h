@@ -1,5 +1,5 @@
-#ifndef TESTS_TEST_POPCOUNT_H
-#define TESTS_TEST_POPCOUNT_H
+#ifndef SRC_TEST_POPCOUNT_H
+#define SRC_TEST_POPCOUNT_H
 
 #include "popcount.h"
 #include <type_traits>
@@ -14,4 +14,4 @@ template <typename T> struct VectorSize {
 };
 } // namespace
 
-#endif // TESTS_TEST_POPCOUNT_H
+#endif // SRC_TEST_POPCOUNT_H

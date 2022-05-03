@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 configure_file(CMakeLists.txt.in googletest-download/CMakeLists.txt)
 
 project(rCppSample CXX)
@@ -50,10 +50,12 @@ set(COMMON_INCLUDE_DIRECTORIES "${BASEPATH}" "${BASEPATH}/../src")
 # Executable unit tests with Rcpp
 set(COMMON_COMPILE_OPTIONS -DSTRICT_R_HEADERS -Wall -Wextra -Wconversion -Wformat=2 -Wcast-qual -Wcast-align -Wwrite-strings -Wfloat-equal -Wpointer-arith -Wno-unused-parameter)
 add_executable(test_popcount ../src/popcount.cpp test_popcount.cpp)
+
 target_compile_options(test_popcount PRIVATE ${COMMON_COMPILE_OPTIONS})
 target_include_directories(test_popcount SYSTEM PRIVATE ${R_INCLUDES_DIRS})
 target_include_directories(test_popcount PRIVATE ${COMMON_INCLUDE_DIRECTORIES})
 target_link_libraries(test_popcount "${R_LIBRARY}" gtest_main)
+#target_precompile_headers(test_popcount PRIVATE ../src/test_popcount.h)
 gtest_add_tests(TARGET test_popcount)
 
 # Executable unit tests without Rcpp
@@ -62,4 +64,5 @@ target_compile_options(test_popcount_std PRIVATE -DUNIT_TEST_CPP ${COMMON_COMPIL
 target_include_directories(test_popcount_std SYSTEM PRIVATE ${R_INCLUDES_DIRS})
 target_include_directories(test_popcount_std PRIVATE ${COMMON_INCLUDE_DIRECTORIES})
 target_link_libraries(test_popcount_std "${R_LIBRARY}" gtest_main)
+#target_precompile_headers(test_popcount_std PRIVATE ../src/test_popcount.h)
 gtest_add_tests(TARGET test_popcount_std TEST_SUFFIX _Std)

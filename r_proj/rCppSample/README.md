@@ -54,6 +54,7 @@ styler::style_pkg()
 ### C++ code
 
 ``` bash
+rm -rf tests/build
 mkdir -p tests/build
 cd tests/build
 cmake ..
@@ -73,6 +74,7 @@ cp src/Makevars.clang ~/.R/Makevars
 
 We can use clang++ and AddressSanitizer in debugging.
 
+    rm -rf tests/build
     mkdir -p tests/build
     cp tests/ClangOverrides.txt tests/build/
     cd tests/build
