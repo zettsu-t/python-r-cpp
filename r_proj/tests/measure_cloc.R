@@ -43,6 +43,7 @@ python_filename <- c(
   "src/cpp_impl_boost/popcount_boost.h",
   "src/cpp_impl_boost/popcount_boost.cpp",
   "src/cpp_impl_boost/popcount_impl_boost.cpp",
+  "tests/test_popcount.h",
   "tests/test_popcount.cpp"
 )
 
