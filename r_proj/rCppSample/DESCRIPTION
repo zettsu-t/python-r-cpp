@@ -7,14 +7,13 @@ Description: This is a sample package to use C++ in R.
 License: MIT + file LICENSE
 LinkingTo:
     Rcpp,
-    testthat (>= 3.0.0)
+    testthat
 Imports:
     Rcpp,
     testthat (>= 3.0.0)
 Encoding: UTF-8
 LazyData: true
 Suggests:
-    testthat (>= 3.0.0),
     spelling,
     xml2,
     covr,
