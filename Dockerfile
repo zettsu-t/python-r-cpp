@@ -1,6 +1,6 @@
 FROM rocker/tidyverse
 ENV DEBIAN_FRONTEND noninteractive
-RUN apt-get update && apt-get install -y build-essential clang clang-format clang-tidy cmake curl doxygen git git-core gnupg2 graphviz language-pack-ja lcov less make pandoc pandoc-citeproc patch python3-dev python3-numpy python3-sphinx software-properties-common unifdef unzip wget
+RUN apt-get update && apt-get install -y build-essential clang clang-format clang-tidy cmake curl doxygen git git-core gnupg2 graphviz language-pack-ja lcov less make pandoc pandoc-citeproc patch python3-dev python3-numpy python3-sphinx software-properties-common unifdef unzip wget libxt-dev
 
 RUN curl -O https://bootstrap.pypa.io/get-pip.py && python3.8 get-pip.py && pip install autopep8 check-manifest coverage find_libpython flake8 mypy numpy pep8 pipenv pybind11 pybind11-global pylint pytest pytest-benchmark pytest-cov py_pkg sphinx sphinx_rtd_theme types-requests
 
@@ -11,7 +11,7 @@ RUN cd "${BOOST_VERSION}" && ./bootstrap.sh --with-libraries=python --with-pytho
 RUN { test -f "/opt/${BOOST_VERSION}/lib/libboost_python.a" || ln -s "/opt/${BOOST_VERSION}/lib/libboost_python38.a" "/opt/${BOOST_VERSION}/lib/libboost_python.a" ; } && { test -f "/opt/${BOOST_VERSION}/lib/libboost_numpy.a" || ln -s "/opt/${BOOST_VERSION}/lib/libboost_numpy38.a" "/opt/${BOOST_VERSION}/lib/libboost_numpy.a" ; } && { test -f "/opt/${BOOST_VERSION}/lib/libboost_python.so" || ln -s "/opt/${BOOST_VERSION}/lib/libboost_python38.so" "/opt/${BOOST_VERSION}/lib/libboost_python.so" ; } && { test -f "/opt/${BOOST_VERSION}/lib/libboost_numpy.so" || ln -s "/opt/${BOOST_VERSION}/lib/libboost_numpy38.so" "/opt/${BOOST_VERSION}/lib/libboost_numpy.so" ; }
 
 ## Make Python packages editable
-RUN mkdir -p /usr/lib/python3.8/site-packages && chmod ugo+w /usr/lib/python3.8/site-packages && apt install -y libxt-dev
+RUN mkdir -p /usr/lib/python3.8/site-packages && chmod ugo+w /usr/lib/python3.8/site-packages
 
 ## Set explicitly
 ENV R_HOME="/usr/local/lib/R"
@@ -29,9 +29,6 @@ ARG R_PROJECT_DIR="${PROJECTS_TOP_DIR}/r_proj/rCppSample"
 RUN mkdir -p "${PYTHON_PROJECT_DIR}" && mkdir -p "${R_PROJECT_DIR}"
 COPY python_proj/ "${PROJECTS_TOP_DIR}/python_proj/"
 COPY r_proj/ "${PROJECTS_TOP_DIR}/r_proj/"
-
-## Undef macros
-RUN { find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'unifdef -U UNIT_TEST_CPP "$1" > "$1".undef' -- '{}' ; } && { find . -maxdepth 2 \( -name "*.cpp" -o -name "*.h" \) ! -name RcppExports.cpp -print0 | xargs --null -I '{}' sh -c 'cp "$1".undef "$1"' -- '{}' ; }
 
 ## cloc
 RUN rm -rf "${R_PROJECT_DIR}/tests/build" && rm -rf "${PYTHON_PROJECT_DIR}/tests/build" && Rscript -e "cloc::cloc('${PYTHON_PROJECT_DIR}')" && Rscript -e "cloc::cloc('${R_PROJECT_DIR}')"
@@ -71,7 +68,7 @@ RUN doxygen -g
 
 RUN patch < ../patch/Doxyfile.diff
 RUN doxygen
-WORKDIR  "${PROJECTS_TOP_DIR}"
+WORKDIR "${PROJECTS_TOP_DIR}"
 
 ## Testing an R package
 WORKDIR "${PROJECTS_TOP_DIR}/r_proj"
