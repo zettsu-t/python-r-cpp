@@ -43,6 +43,27 @@ context("Helper") {
     }
 }
 
+context("NaInteger") {
+    test_that("IsNaInteger") {
+        constexpr uint8_t zero_uint8 = 0;
+        constexpr auto max_uint8 = std::numeric_limits<uint8_t>::max();
+        constexpr int zero_int = 0;
+        constexpr auto max_int = std::numeric_limits<int>::max();
+        constexpr auto min_int = std::numeric_limits<int>::min();
+        expect_false(is_na_integer<rCppSample::RawVector>(zero_uint8));
+        expect_false(is_na_integer<rCppSample::RawVector>(max_uint8));
+        expect_false(is_na_integer<rCppSample::IntegerVector>(zero_int));
+        expect_false(is_na_integer<rCppSample::IntegerVector>(max_int));
+        expect_true(is_na_integer<rCppSample::IntegerVector>(min_int));
+    }
+
+    test_that("GetNaIntValue") {
+        const auto expected = NA_INTEGER;
+        const auto actual = get_na_int_value();
+        expect_true(actual == expected);
+    }
+}
+
 context("PopcountCpp") {
     test_that("Size") {
         using VectorType = rCppSample::RawVector;

@@ -51,6 +51,7 @@ r_filename <- c(
   "R/r_cpp_sample.R",
   "tests/testthat/test-popcount.R",
   "src/popcount.h",
+  "src/popcount_impl.h",
   "src/test_popcount.h",
   "src/popcount.cpp",
   "src/test-popcount.cpp",

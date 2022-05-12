@@ -97,7 +97,7 @@ jobs:
           pip uninstall -y py_cpp_sample
           sudo pip install pybind11 pybind11-global
           sudo pip install --force -e .
-          PYTHONPATH=src; pytest --cov=src --cov=tests --cov-report=html tests; unset PYTHONPATH
+          export PYTHONPATH=src; pytest --cov=src --cov=tests --cov-report=html tests; unset PYTHONPATH
           coverage report -m
           coverage html
 

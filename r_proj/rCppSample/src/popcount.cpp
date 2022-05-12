@@ -1,23 +1,6 @@
-#include "popcount.h"
+#include "popcount_impl.h"
 
 namespace {
-template <typename T> bool is_na_integer(const T &x) {
-#ifdef UNIT_TEST_CPP
-    return (x == rCppSample::NaInteger);
-#else  // UNIT_TEST_CPP
-    return Rcpp::IntegerVector::is_na(x);
-#endif // UNIT_TEST_CPP
-}
-
-// Cannot use constexpr for NA_INTEGER
-int get_na_value() {
-#ifdef UNIT_TEST_CPP
-    return rCppSample::NaInteger;
-#else  // UNIT_TEST_CPP
-    return NA_INTEGER;
-#endif // UNIT_TEST_CPP
-}
-
 //' Count 1's in each element
 //'
 //' @tparam T A type of integers
@@ -30,10 +13,17 @@ template <typename T> rCppSample::IntegerVector popcount_cpp_impl(const T &xs) {
 
     for (decltype(size) i = 0; i < size; ++i) {
         const auto x = xs[i];
+        static_assert(std::is_integral<decltype(x)>::value);
 #ifdef __GNUC__
+#ifdef UNIT_TEST_CPP
         const auto v = is_na_integer(x)
-                           ? get_na_value()
+                           ? get_na_int_value()
                            : __builtin_popcount(static_cast<unsigned int>(x));
+#else  // UNIT_TEST_CPP
+        const auto v = is_na_integer<T>(x)
+                           ? get_na_int_value()
+                           : __builtin_popcount(static_cast<unsigned int>(x));
+#endif // UNIT_TEST_CPP
 #else
 #error Use an alternative of __builtin_popcount
 #endif

@@ -1,7 +1,7 @@
 #ifndef SRC_TEST_POPCOUNT_H
 #define SRC_TEST_POPCOUNT_H
 
-#include "popcount.h"
+#include "popcount_impl.h"
 #include <type_traits>
 
 namespace {

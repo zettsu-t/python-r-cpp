@@ -137,7 +137,7 @@ ratio
 rCppSample::popcount(raw_set)
 </td>
 <td style="text-align:left;">
-2.39230
+2.1495
 </td>
 <td style="text-align:left;">
 1.00000
@@ -148,10 +148,10 @@ rCppSample::popcount(raw_set)
 rCppSample::popcount(integer_set)
 </td>
 <td style="text-align:left;">
-2.59605
+2.9266
 </td>
 <td style="text-align:left;">
-1.08517
+1.36153
 </td>
 </tr>
 <tr>
@@ -159,10 +159,10 @@ rCppSample::popcount(integer_set)
 popcount_raw_r(raw_set)
 </td>
 <td style="text-align:left;">
-16.25745
+18.2799
 </td>
 <td style="text-align:left;">
-6.79574
+8.50428
 </td>
 </tr>
 <tr>
@@ -170,10 +170,10 @@ popcount_raw_r(raw_set)
 popcount_integer_r(integer_set)
 </td>
 <td style="text-align:left;">
-174.71225
+202.1020
 </td>
 <td style="text-align:left;">
-73.03108
+94.02280
 </td>
 </tr>
 </tbody>

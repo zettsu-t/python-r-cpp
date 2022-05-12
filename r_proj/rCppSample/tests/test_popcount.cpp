@@ -37,6 +37,39 @@ TEST_F(TestMatrix, Shape) {
 }
 #endif // UNIT_TEST_CPP
 
+class TestNaInteger : public ::testing::Test {};
+
+TEST_F(TestNaInteger, IsNaInteger) {
+    constexpr uint8_t zero_uint8 = 0;
+    constexpr auto max_uint8 = std::numeric_limits<uint8_t>::max();
+    constexpr int zero_int = 0;
+    constexpr auto max_int = std::numeric_limits<int>::max();
+    constexpr auto min_int = std::numeric_limits<int>::min();
+#ifdef UNIT_TEST_CPP
+    EXPECT_FALSE(is_na_integer(zero_uint8));
+    EXPECT_FALSE(is_na_integer(max_uint8));
+    EXPECT_FALSE(is_na_integer(zero_int));
+    EXPECT_FALSE(is_na_integer(max_int));
+    EXPECT_TRUE(is_na_integer(min_int));
+#else // UNIT_TEST_CPP
+    EXPECT_FALSE(is_na_integer<rCppSample::RawVector>(zero_uint8));
+    EXPECT_FALSE(is_na_integer<rCppSample::RawVector>(max_uint8));
+    EXPECT_FALSE(is_na_integer<rCppSample::IntegerVector>(zero_int));
+    EXPECT_FALSE(is_na_integer<rCppSample::IntegerVector>(max_int));
+    EXPECT_TRUE(is_na_integer<rCppSample::IntegerVector>(min_int));
+#endif // UNIT_TEST_CPP
+}
+
+TEST_F(TestNaInteger, GetNaIntValue) {
+#ifdef UNIT_TEST_CPP
+    const auto expected = rCppSample::NaInteger;
+#else // UNIT_TEST_CPP
+    const auto expected = NA_INTEGER;
+#endif // UNIT_TEST_CPP
+    const auto actual = get_na_int_value();
+    EXPECT_EQ(expected, actual);
+}
+
 namespace {
 template <typename T, typename U>
 bool are_equal(const T &expected, const U &actual) {
