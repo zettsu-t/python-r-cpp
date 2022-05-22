@@ -1,5 +1,5 @@
---- patch/conf.py	2022-03-20 23:08:05.849486300 +0000
-+++ conf.py	2022-03-20 23:08:50.297392200 +0000
+--- patch/conf.py	2022-05-22 03:11:33.905605300 +0000
++++ conf.py	2022-05-22 03:00:55.655754800 +0000
 @@ -12,9 +12,9 @@
  # add these directories to sys.path here. If the directory is relative to the
  # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -22,3 +22,12 @@
  ]
  
  # Add any paths that contain templates here, relative to this directory.
+@@ -74,7 +74,7 @@ pygments_style = None
+ # The theme to use for HTML and HTML Help pages.  See the documentation for
+ # a list of builtin themes.
+ #
+-html_theme = 'alabaster'
++html_theme = 'sphinx_rtd_theme'
+ 
+ # Theme options are theme-specific and customize the look and feel of a theme
+ # further.  For a list of options available for each theme, see the

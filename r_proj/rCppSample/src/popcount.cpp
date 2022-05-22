@@ -13,7 +13,7 @@ template <typename T> rCppSample::IntegerVector popcount_cpp_impl(const T &xs) {
 
     for (decltype(size) i = 0; i < size; ++i) {
         const auto x = xs[i];
-        static_assert(std::is_integral<decltype(x)>::value);
+        static_assert(std::is_integral<decltype(x)>::value, "Must be integral");
 #ifdef __GNUC__
 #ifdef UNIT_TEST_CPP
         const auto v = is_na_integer(x)
